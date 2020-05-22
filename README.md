@@ -1,4 +1,7 @@
 # DBA
+
+## Note - This repo was created so that I could cleanup AlphaPav's repo (https://github.com/AlphaPav/DBA) for personal use. All original work belongs to the concerned parties mentioned in the original repo. 
+
 In this repository, code is for our ICLR 2020 paper [DBA: Distributed Backdoor Attacks against Federated Learning](https://openreview.net/forum?id=rkgyS0VFvr)
 
 ## Installation
