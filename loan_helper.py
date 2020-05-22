@@ -1,35 +1,32 @@
 from collections import defaultdict
-import config
-import torch
-import torch.utils.data
-import datetime
-from helper import Helper
+from datetime import datetime
 import random
 import logging
-from torchvision import datasets, transforms
-import numpy as np
-
-from models.loan_model import LoanNet
-import csv
-
-import os
-
-import pandas as pd
-
-import torch
-import torch.utils.data as data
-from sklearn.model_selection import train_test_split
-import os
-
 
 import yaml
+import csv
+import os
+
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+
+import torch
+from torch.utils.data import DataLoader
+from torchvision import datasets, transforms
+
+from models.loan_model import LoanNet
+from helper import Helper
+import config  # self defined lib for setting training config
+
 logger = logging.getLogger("logger")
 POISONED_PARTICIPANT_POS = 0
 
+
 class StateHelper():
     def __init__(self, params):
-        self.params= params
-        self.name=""
+        self.params = params
+        self.name = ""
 
     def load_data(self, filename='./data/loan/loan_IA.csv'):
         logger.info('Loading data')
@@ -39,64 +36,60 @@ class StateHelper():
     def get_trainloader(self):
 
         self.all_dataset.SetIsTrain(True)
-        train_loader = torch.utils.data.DataLoader(self.all_dataset, batch_size=self.params['batch_size'],
-                                                   shuffle=True)
-
-        return train_loader
+        return DataLoader(self.all_dataset, batch_size=self.params['batch_size'], shuffle=True)
 
     def get_testloader(self):
 
         self.all_dataset.SetIsTrain(False)
-        test_loader = torch.utils.data.DataLoader(self.all_dataset,
-                                                  batch_size=self.params['test_batch_size'],
-                                                  shuffle=False)
-
-        return test_loader
+        return  DataLoader(self.all_dataset, batch_size=self.params['test_batch_size'])
 
     def get_poison_trainloader(self):
-        self.all_dataset.SetIsTrain(True)
 
-        return torch.utils.data.DataLoader(self.all_dataset,
-                                           batch_size=self.params['batch_size'],
-                                           shuffle=True)
+        self.all_dataset.SetIsTrain(True)
+        return DataLoader(self.all_dataset, batch_size=self.params['batch_size'], shuffle=True)
 
     def get_poison_testloader(self):
 
         self.all_dataset.SetIsTrain(False)
-
-        return torch.utils.data.DataLoader(self.all_dataset,
-                                           batch_size=self.params['test_batch_size'],
-                                           shuffle=False)
+        return DataLoader(self.all_dataset, batch_size=self.params['test_batch_size'])
 
     def get_batch(self, train_data, bptt, evaluation=False):
         data, target = bptt
+
+        # config.device moves the tensor to cpu/gpu based on configuration in config lib
         data = data.float().to(config.device)
         target = target.long().to(config.device)
+
+        # if we are in eval mode turn gradient computation off
         if evaluation:
             data.requires_grad_(False)
             target.requires_grad_(False)
+
         return data, target
 
 
 class LoanHelper(Helper):
+
     def poison(self):
         return
 
     def create_model(self):
-        local_model = LoanNet(name='Local',
-                               created_time=self.params['current_time'])
-        local_model=local_model.to(config.device)
+        local_model = LoanNet(name='Local', created_time=self.params['current_time'])
+        local_model = local_model.to(config.device)
 
-        target_model = LoanNet(name='Target',
-                                created_time=self.params['current_time'])
-        target_model=target_model.to(config.device)
+        target_model = LoanNet(name='Target', created_time=self.params['current_time'])
+        target_model = target_model.to(config.device)
 
         if self.params['resumed_model']:
+            """
+            If resuming training of previously trained model 
+            then load back states of concerned modules
+            """
             if torch.cuda.is_available():
                 loaded_params = torch.load(f"saved_models/{self.params['resumed_model_name']}")
             else:
-                loaded_params = torch.load(f"saved_models/{self.params['resumed_model_name']}",
-                                           map_location='cpu')
+                loaded_params = torch.load(f"saved_models/{self.params['resumed_model_name']}", map_location='cpu')
+
             target_model.load_state_dict(loaded_params['state_dict'])
             self.start_epoch = loaded_params['epoch']+1
             self.params['lr'] = loaded_params.get('lr', self.params['lr'])
@@ -108,7 +101,7 @@ class LoanHelper(Helper):
         self.local_model = local_model
         self.target_model = target_model
 
-    def load_data(self,params_loaded):
+    def load_data(self, params_loaded):
         self.statehelper_dic ={}
         self.allStateHelperList=[]
         self.participants_list=[]
@@ -187,6 +180,9 @@ class LoanDataset(data.Dataset):
             return len(self.test_data)
 
     def __getitem__(self, index):
+        """
+        Returns a specific data point and its corresponding label
+        """
         if self.train:
             data, label = self.train_data[index], self.train_labels[index]
         else:
@@ -194,26 +190,35 @@ class LoanDataset(data.Dataset):
 
         return data, label
 
-    def SetIsTrain(self,isTrain):
-        self.train =isTrain
+    def SetIsTrain(self, isTrain):
+        self.train = isTrain
 
-    def getPortion(self,loan_status=0):
-        train_count= 0
-        test_count=0
-        for i in range(0,len(self.train_labels)):
-            if self.train_labels[i]==loan_status:
-                train_count+=1
-        for i in range(0,len(self.test_labels)):
-            if self.test_labels[i]==loan_status:
-                test_count+=1
-        return (train_count+test_count)/ (len(self.train_labels)+len(self.test_labels)), \
-               train_count/len(self.train_labels), test_count/len(self.test_labels)
+    def getPortion(self, loan_status=0):
+        
+        train_count = 0
+        test_count = 0
+
+        for i in range(len(self.train_labels)):
+            if self.train_labels[i] == loan_status:
+                train_count += 1
+        
+        for i in range(len(self.test_labels)):
+            if self.test_labels[i] == loan_status:
+                test_count += 1
+        
+        total_portion = (train_count + test_count)/(len(self.train_labels) + len(self.test_labels))
+        train_portion = train_count/len(self.train_labels)
+        test_portion = test_count/len(self.test_labels)
+
+        return total_portion, train_portion, test_portion
+
 
 if __name__ == '__main__':
 
     with open(f'./utils/loan_params.yaml', 'r') as f:
         params_loaded = yaml.load(f)
-    current_time = datetime.datetime.now().strftime('%b.%d_%H.%M.%S')
+
+    current_time = datetime.now().strftime('%b.%d_%H.%M.%S')
 
     helper = LoanHelper(current_time=current_time, params=params_loaded,
                         name=params_loaded.get('name', 'loan'))

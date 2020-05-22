@@ -1,31 +1,33 @@
 import argparse
 import json
-import datetime
+from datetime import datetime
 import os
 import logging
-import torch
-import torch.nn as nn
-import train
-import test
-import torch.nn.functional as F
-import torch.optim as optim
-from torch.autograd import Variable
-import math
 import csv
-from torchvision import transforms
-from loan_helper import LoanHelper
-from image_helper import ImageHelper
-from utils.utils import dict_html
-import utils.csv_record as csv_record
+
 import yaml
 import time
 import visdom
 import numpy as np
 import random
-import config
 import copy
 
-import os
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+from torch.autograd import Variable
+from torchvision import transforms
+
+import config
+import train
+import test
+from loan_helper import LoanHelper
+from image_helper import ImageHelper
+from utils.utils import dict_html
+import utils.csv_record as csv_record
+
+
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
 logger = logging.getLogger("logger")
@@ -82,37 +84,51 @@ def vis_fg_alpha(helper,names,alphas,epoch,vis,adversarial_name_keys):
                                        name=_name,is_poisoned=_is_poison)
 
 if __name__ == '__main__':
+    
     print('Start training')
+    
     np.random.seed(1)
     time_start_load_everything = time.time()
+    
     parser = argparse.ArgumentParser(description='PPDL')
     parser.add_argument('--params', dest='params')
     args = parser.parse_args()
     with open(f'./{args.params}', 'r') as f:
         params_loaded = yaml.load(f)
-    current_time = datetime.datetime.now().strftime('%b.%d_%H.%M.%S')
+    
+    current_time = datetime.now().strftime('%b.%d_%H.%M.%S')
+    
+    # Loan dataset
     if params_loaded['type'] == config.TYPE_LOAN:
         helper = LoanHelper(current_time=current_time, params=params_loaded,
                             name=params_loaded.get('name', 'loan'))
         helper.load_data(params_loaded)
+    
+    # CIFAR dataset
     elif params_loaded['type'] == config.TYPE_CIFAR:
         helper = ImageHelper(current_time=current_time, params=params_loaded,
                              name=params_loaded.get('name', 'cifar'))
         helper.load_data()
+    
+    # MNIST dataset
     elif params_loaded['type'] == config.TYPE_MNIST:
         helper = ImageHelper(current_time=current_time, params=params_loaded,
                              name=params_loaded.get('name', 'mnist'))
         helper.load_data()
+    
+    # Tiny-ImageNet dataset
     elif params_loaded['type'] == config.TYPE_TINYIMAGENET:
         helper = ImageHelper(current_time=current_time, params=params_loaded,
                              name=params_loaded.get('name', 'tiny'))
         helper.load_data()
+    
     else:
         helper = None
 
     logger.info(f'load data done')
     helper.create_model()
     logger.info(f'create model done')
+    
     ### Create models
     if helper.params['is_poison']:
         logger.info(f"Poisoned following participants: {(helper.params['adversary_list'])}")
@@ -139,11 +155,13 @@ if __name__ == '__main__':
         agent_name_keys = helper.participants_list
         adversarial_name_keys = []
         if helper.params['is_random_namelist']:
+    
             if helper.params['is_random_adversary']:  # random choose , maybe don't have advasarial
                 agent_name_keys = random.sample(helper.participants_list, helper.params['no_models'])
                 for _name_keys in agent_name_keys:
                     if _name_keys in helper.params['adversary_list']:
                         adversarial_name_keys.append(_name_keys)
+    
             else:  # must have advasarial if this epoch is in their poison epoch
                 ongoing_epochs = list(range(epoch, epoch + helper.params['aggr_epoch_interval']))
                 for idx in range(0, len(helper.params['adversary_list'])):
@@ -159,6 +177,7 @@ if __name__ == '__main__':
                 benign_num = helper.params['no_models'] - len(adversarial_name_keys)
                 random_agent_name_keys = random.sample(helper.benign_namelist+nonattacker, benign_num)
                 agent_name_keys = adversarial_name_keys + random_agent_name_keys
+    
         else:
             if helper.params['is_random_adversary']==False:
                 adversarial_name_keys=copy.deepcopy(helper.params['adversary_list'])
