@@ -1,5 +1,4 @@
 import argparse
-import json
 from datetime import datetime
 import os
 import logging
@@ -8,16 +7,11 @@ import csv
 import yaml
 import time
 import visdom
-import numpy as np
 import random
 import copy
 
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-from torch.autograd import Variable
-from torchvision import transforms
+from torch import nn
 
 import config
 import train
@@ -34,60 +28,80 @@ logger = logging.getLogger("logger")
 # logger.setLevel("ERROR")
 
 vis = visdom.Visdom(port=8098)
-criterion = torch.nn.CrossEntropyLoss()
+criterion = nn.CrossEntropyLoss()
 torch.manual_seed(1)
 torch.cuda.manual_seed(1)
 random.seed(1)
+
 def trigger_test_byindex(helper, index, vis, epoch):
     epoch_loss, epoch_acc, epoch_corret, epoch_total = \
         test.Mytest_poison_trigger(helper=helper, model=helper.target_model,
                                    adver_trigger_index=index)
+
     csv_record.poisontriggertest_result.append(
         ['global', "global_in_index_" + str(index) + "_trigger", "", epoch,
          epoch_loss, epoch_acc, epoch_corret, epoch_total])
+
     if helper.params['vis_trigger_split_test']:
         helper.target_model.trigger_agent_test_vis(vis=vis, epoch=epoch, acc=epoch_acc, loss=None,
                                                    eid=helper.params['environment_name'],
                                                    name="global_in_index_" + str(index) + "_trigger")
+
 def trigger_test_byname(helper, agent_name_key, vis, epoch):
     epoch_loss, epoch_acc, epoch_corret, epoch_total = \
         test.Mytest_poison_agent_trigger(helper=helper, model=helper.target_model, agent_name_key=agent_name_key)
+    
     csv_record.poisontriggertest_result.append(
         ['global', "global_in_" + str(agent_name_key) + "_trigger", "", epoch,
          epoch_loss, epoch_acc, epoch_corret, epoch_total])
+    
     if helper.params['vis_trigger_split_test']:
         helper.target_model.trigger_agent_test_vis(vis=vis, epoch=epoch, acc=epoch_acc, loss=None,
                                                    eid=helper.params['environment_name'],
                                                    name="global_in_" + str(agent_name_key) + "_trigger")
-def vis_agg_weight(helper,names,weights,epoch,vis,adversarial_name_keys):
+
+def vis_agg_weight(helper, names, weights, epoch, vis, adversarial_name_keys):
+    """
+    Probably some func to generate visualisations using visdom lib
+    """
+    
     print(names)
     print(adversarial_name_keys)
-    for i in range(0,len(names)):
+    
+    for i in range(len(names)):
         _name= names[i]
         _weight=weights[i]
         _is_poison=False
+
         if _name in adversarial_name_keys:
             _is_poison=True
-        helper.target_model.weight_vis(vis=vis,epoch=epoch,weight=_weight, eid=helper.params['environment_name'],
-                                       name=_name,is_poisoned=_is_poison)
+        helper.target_model.weight_vis(vis=vis, epoch=epoch, weight=_weight, eid=helper.params['environment_name'],
+                                       name=_name, is_poisoned=_is_poison)
 
 def vis_fg_alpha(helper,names,alphas,epoch,vis,adversarial_name_keys):
+    """
+    Probably some func to generate visualisations using visdom lib
+    """
+
     print(names)
     print(adversarial_name_keys)
-    for i in range(0,len(names)):
+    
+    for i in range(len(names)):
         _name= names[i]
         _alpha=alphas[i]
         _is_poison=False
+        
         if _name in adversarial_name_keys:
             _is_poison=True
-        helper.target_model.alpha_vis(vis=vis,epoch=epoch,alpha=_alpha, eid=helper.params['environment_name'],
-                                       name=_name,is_poisoned=_is_poison)
+        helper.target_model.alpha_vis(vis=vis, epoch=epoch, alpha=_alpha, eid=helper.params['environment_name'],
+                                       name=_name, is_poisoned=_is_poison)
 
 if __name__ == '__main__':
     
     print('Start training')
     
-    np.random.seed(1)
+    # np.random.seed(1) - Commented out by TJ
+
     time_start_load_everything = time.time()
     
     parser = argparse.ArgumentParser(description='PPDL')
@@ -154,6 +168,7 @@ if __name__ == '__main__':
 
         agent_name_keys = helper.participants_list
         adversarial_name_keys = []
+        
         if helper.params['is_random_namelist']:
     
             if helper.params['is_random_adversary']:  # random choose , maybe don't have advasarial
