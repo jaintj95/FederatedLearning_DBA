@@ -31,9 +31,10 @@ def Mytest(helper, epoch, model, is_poison=False, visualize=True, agent_name_key
                 pred = output.data.max(1)[1]  # get the index of the max log-probability
                 correct += pred.eq(targets.data.view_as(pred)).cpu().sum().item()
 
-    elif helper.params['type'] == config.TYPE_CIFAR \
-            or helper.params['type'] == config.TYPE_MNIST \
-            or helper.params['type'] == config.TYPE_TINYIMAGENET:
+    # elif helper.params['type'] == config.TYPE_CIFAR \
+    #         or helper.params['type'] == config.TYPE_MNIST \
+    #         or helper.params['type'] == config.TYPE_TINYIMAGENET:
+    elif helper.params['type'] in [config.TYPE_CIFAR, config.TYPE_MNIST, config.TYPE_TINYIMAGENET]:
         data_iterator = helper.test_data
         for batch_id, batch in enumerate(data_iterator):
             data, targets = helper.get_batch(data_iterator, batch, evaluation=True)
@@ -103,9 +104,10 @@ def Mytest_poison(helper, epoch, model, is_poison=False, visualize=True, agent_n
                 pred = output.data.max(1)[1]  # get the index of the max log-probability
                 correct += pred.eq(targets.data.view_as(pred)).cpu().sum().item()
     
-    elif helper.params['type'] == config.TYPE_CIFAR \
-            or helper.params['type'] == config.TYPE_MNIST \
-            or helper.params['type'] == config.TYPE_TINYIMAGENET:
+    # elif helper.params['type'] == config.TYPE_CIFAR \
+    #         or helper.params['type'] == config.TYPE_MNIST \
+    #         or helper.params['type'] == config.TYPE_TINYIMAGENET:
+    elif helper.params['type'] in [config.TYPE_CIFAR, config.TYPE_MNIST, config.TYPE_TINYIMAGENET]:
         data_iterator = helper.test_data_poison
         for batch_id, batch in enumerate(data_iterator):
             data, targets, poison_num = helper.get_poison_batch(batch, adversarial_index=-1, evaluation=True)
@@ -175,9 +177,10 @@ def Mytest_poison_trigger(helper, model, adver_trigger_index):
                 pred = output.data.max(1)[1]  # get the index of the max log-probability
                 correct += pred.eq(targets.data.view_as(pred)).cpu().sum().item()
 
-    elif helper.params['type'] == config.TYPE_CIFAR \
-            or helper.params['type'] == config.TYPE_MNIST \
-            or helper.params['type'] == config.TYPE_TINYIMAGENET:
+    # elif helper.params['type'] == config.TYPE_CIFAR \
+    #         or helper.params['type'] == config.TYPE_MNIST \
+    #         or helper.params['type'] == config.TYPE_TINYIMAGENET:
+    elif helper.params['type'] in [config.TYPE_CIFAR, config.TYPE_MNIST, config.TYPE_TINYIMAGENET]:
         data_iterator = helper.test_data_poison
         adv_index = adver_trigger_index
         for batch_id, batch in enumerate(data_iterator):
@@ -233,9 +236,10 @@ def Mytest_poison_agent_trigger(helper, model, agent_name_key):
                 pred = output.data.max(1)[1]  # get the index of the max log-probability
                 correct += pred.eq(targets.data.view_as(pred)).cpu().sum().item()
 
-    elif helper.params['type'] == config.TYPE_CIFAR \
-            or helper.params['type'] == config.TYPE_MNIST \
-            or helper.params['type'] == config.TYPE_TINYIMAGENET:
+    # elif helper.params['type'] == config.TYPE_CIFAR \
+    #         or helper.params['type'] == config.TYPE_MNIST \
+    #         or helper.params['type'] == config.TYPE_TINYIMAGENET:
+    elif helper.params['type'] in [config.TYPE_CIFAR, config.TYPE_MNIST, config.TYPE_TINYIMAGENET]:
         data_iterator = helper.test_data_poison
         adv_index = -1
         

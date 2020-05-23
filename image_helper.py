@@ -6,7 +6,7 @@ import numpy as np
 import copy
 import yaml
 import os
-import datetime
+from datetime import datetime
 
 import torch
 from torch.utils.data import DataLoader
@@ -269,7 +269,7 @@ class ImageHelper(Helper):
         """
 
         data_len = int(len(self.train_dataset) / self.params['number_of_total_participants'])
-        sub_indices = all_range[model_no*data_len : (model_no + 1)*data_len]
+        sub_indices = all_range[model_no*data_len : (model_no+1)*data_len]
         train_loader = DataLoader(self.train_dataset, batch_size=self.params['batch_size'],
                                 sampler=SubsetRandomSampler(sub_indices))
         return train_loader
@@ -281,55 +281,60 @@ class ImageHelper(Helper):
 
 
     def get_batch(self, train_data, bptt, evaluation=False):
+        #bptt is just a batch drawn using DataLoder
         data, target = bptt
         data = data.to(device)
         target = target.to(device)
+        
         if evaluation:
             data.requires_grad_(False)
             target.requires_grad_(False)
+        
         return data, target
 
 
-    def get_poison_batch(self, bptt, adversarial_index=-1, evaluation=False):
+    def get_poison_batch(self, bptt, adversarial_idx=-1, evaluation=False):
 
         images, targets = bptt
 
-        poison_count= 0
-        new_images=images
-        new_targets=targets
+        poison_count = 0
+        new_images = images
+        new_targets = targets
 
-        for index in range(0, len(images)):
+        for idx in range(0, len(images)):
             if evaluation: # poison all data when testing
-                new_targets[index] = self.params['poison_label_swap']
-                new_images[index] = self.add_pixel_pattern(images[index],adversarial_index)
-                poison_count+=1
+                new_targets[idx] = self.params['poison_label_swap']
+                new_images[idx] = self.add_pixel_pattern(images[idx], adversarial_idx)
+                poison_count += 1
 
             else: # poison part of data when training
-                if index < self.params['poisoning_per_batch']:
-                    new_targets[index] = self.params['poison_label_swap']
-                    new_images[index] = self.add_pixel_pattern(images[index],adversarial_index)
+                if idx < self.params['poisoning_per_batch']:
+                    new_targets[idx] = self.params['poison_label_swap']
+                    new_images[idx] = self.add_pixel_pattern(images[idx], adversarial_idx)
                     poison_count += 1
                 else:
-                    new_images[index] = images[index]
-                    new_targets[index] = targets[index]
+                    new_images[idx] = images[idx]
+                    new_targets[idx] = targets[idx]
 
         new_images = new_images.to(device)
         new_targets = new_targets.to(device).long()
+        
         if evaluation:
             new_images.requires_grad_(False)
             new_targets.requires_grad_(False)
+
         return new_images,new_targets,poison_count
 
 
-    def add_pixel_pattern(self, ori_image, adversarial_index):
+    def add_pixel_pattern(self, ori_image, adversarial_idx):
         image = copy.deepcopy(ori_image)
         poison_patterns = []
 
-        if adversarial_index == -1:
+        if adversarial_idx == -1:
             for i in range(0,self.params['trigger_num']):
-                poison_patterns = poison_patterns+ self.params[str(i) + '_poison_pattern']
+                poison_patterns = poison_patterns + self.params[str(i) + '_poison_pattern']
         else :
-            poison_patterns = self.params[str(adversarial_index) + '_poison_pattern']
+            poison_patterns = self.params[str(adversarial_idx) + '_poison_pattern']
         
         if self.params['type'] == config.TYPE_CIFAR or self.params['type'] == config.TYPE_TINYIMAGENET:
             for i in range(0,len(poison_patterns)):
@@ -347,28 +352,31 @@ class ImageHelper(Helper):
         return image
 
 if __name__ == '__main__':
+
     np.random.seed(1)
+
     with open(f'./utils/cifar_params.yaml', 'r') as f:
         params_loaded = yaml.load(f)
-    current_time = datetime.datetime.now().strftime('%b.%d_%H.%M.%S')
+
+    current_time = datetime.now().strftime('%b.%d_%H.%M.%S')
     helper = ImageHelper(current_time=current_time, params=params_loaded, name=params_loaded.get('name', 'mnist'))
     helper.load_data()
 
-    pars = list(range(100))
+    participants = list(range(100))
     # show the data distribution among all participants.
     count_all = 0
-    for par in pars:
+    for party in participants:
         cifar_class_count = dict()
         for i in range(10):
             cifar_class_count[i] = 0
         count = 0
-        _, data_iterator = helper.train_data[par]
+        _, data_iterator = helper.train_data[party]
         for batch_id, batch in enumerate(data_iterator):
             data, targets = batch
             for t in targets:
                 cifar_class_count[t.item()] += 1
             count += len(targets)
         count_all += count
-        print(par, cifar_class_count,count,max(zip(cifar_class_count.values(), cifar_class_count.keys())))
+        print(party, cifar_class_count,count, max(zip(cifar_class_count.values(), cifar_class_count.keys())))
 
     print('avg', count_all*1.0/100)
