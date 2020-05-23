@@ -4,7 +4,6 @@ from torch import nn
 import config
 import main
 
-
 """
 Module that initiates various kinds of tests 
 """
@@ -40,8 +39,7 @@ def Mytest(helper, epoch, model, is_poison=False, visualize=True, agent_name_key
             data, targets = helper.get_batch(data_iterator, batch, evaluation=True)
             dataset_size += len(data)
             output = model(data)
-            total_loss += nn.functional.cross_entropy(output, targets,
-                                                      reduction='sum').item()  # sum up batch loss
+            total_loss += nn.functional.cross_entropy(output, targets, reduction='sum').item()  # sum up batch loss
             pred = output.data.max(1)[1]  # get the index of the max log-probability
             correct += pred.eq(targets.data.view_as(pred)).cpu().sum().item()
 
@@ -111,12 +109,10 @@ def Mytest_poison(helper, epoch, model, is_poison=False, visualize=True, agent_n
         data_iterator = helper.test_data_poison
         for batch_id, batch in enumerate(data_iterator):
             data, targets, poison_num = helper.get_poison_batch(batch, adversarial_index=-1, evaluation=True)
-
             poison_data_count += poison_num
             dataset_size += len(data)
             output = model(data)
-            total_loss += nn.functional.cross_entropy(output, targets,
-                                                      reduction='sum').item()  # sum up batch loss
+            total_loss += nn.functional.cross_entropy(output, targets, reduction='sum').item()  # sum up batch loss
             pred = output.data.max(1)[1]  # get the index of the max log-probability
             correct += pred.eq(targets.data.view_as(pred)).cpu().sum().item()
 
@@ -124,10 +120,10 @@ def Mytest_poison(helper, epoch, model, is_poison=False, visualize=True, agent_n
     total_l = total_loss / poison_data_count if poison_data_count!=0 else 0
     main.logger.info('___Test {} poisoned: {}, epoch: {}: Average loss: {:.4f}, '
                      'Accuracy: {}/{} ({:.4f}%)'.format(model.name, is_poison, epoch,
-                                                        total_l, correct, poison_data_count,
-                                                        acc))
+                                                        total_l, correct, poison_data_count, acc))
     if visualize: #loss = total_l
-        model.poison_test_vis(vis=main.vis, epoch=epoch, acc=acc, loss=None, eid=helper.params['environment_name'],agent_name_key=str(agent_name_key))
+        model.poison_test_vis(vis=main.vis, epoch=epoch, acc=acc, loss=None, 
+                            eid=helper.params['environment_name'], agent_name_key=str(agent_name_key))
 
     model.train()
     return total_l, acc, correct, poison_data_count
@@ -214,8 +210,10 @@ def Mytest_poison_agent_trigger(helper, model, agent_name_key):
             if agent_name_key == helper.params['adversary_list'][temp_index]:
                 adv_index = temp_index
                 break
+        
         trigger_names = helper.params[str(adv_index) + '_poison_trigger_names']
         trigger_values = helper.params[str(adv_index) + '_poison_trigger_values']
+
         for i in range(0, len(helper.allStateHelperList)):
             state_helper = helper.allStateHelperList[i]
             data_source = state_helper.get_testloader()
@@ -231,8 +229,7 @@ def Mytest_poison_agent_trigger(helper, model, agent_name_key):
                 data, targets = state_helper.get_batch(data_source, batch, evaluation=True)
                 dataset_size += len(data)
                 output = model(data)
-                total_loss += nn.functional.cross_entropy(output, targets,
-                                                          reduction='sum').item()  # sum up batch loss
+                total_loss += nn.functional.cross_entropy(output, targets, reduction='sum').item()  # sum up batch loss
                 pred = output.data.max(1)[1]  # get the index of the max log-probability
                 correct += pred.eq(targets.data.view_as(pred)).cpu().sum().item()
 
