@@ -29,6 +29,8 @@ logger = logging.getLogger("logger")
 
 vis = visdom.Visdom(port=8098)
 criterion = nn.CrossEntropyLoss()
+
+# What's up with so many seeds?
 torch.manual_seed(1)
 torch.cuda.manual_seed(1)
 random.seed(1)
