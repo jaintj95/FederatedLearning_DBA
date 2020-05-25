@@ -53,15 +53,15 @@ class StateHelper():
         self.all_dataset.SetIsTrain(False)
         return DataLoader(self.all_dataset, batch_size=self.params['test_batch_size'])
 
-    def get_batch(self, train_data, bptt, evaluation=False):
-        data, target = bptt
+    def get_batch(self, data_loader, batch, eval=False):
+        data, target = batch
 
         # config.device moves the tensor to cpu/gpu based on configuration in config lib
         data = data.float().to(config.device)
         target = target.long().to(config.device)
 
         # if we are in eval mode turn gradient computation off
-        if evaluation:
+        if eval:
             data.requires_grad_(False)
             target.requires_grad_(False)
 

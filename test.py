@@ -1,11 +1,12 @@
 import torch
 from torch import nn
+import torch.nn.functional as F
 
 import config
 import main
 
 """
-Module that initiates various kinds of tests 
+Module that defines various kinds of tests 
 """
 
 def Mytest(helper, epoch, model, is_poison=False, visualize=True, agent_name_key=""):
@@ -19,14 +20,15 @@ def Mytest(helper, epoch, model, is_poison=False, visualize=True, agent_name_key
     dataset_size = 0
     
     if helper.params['type'] == config.TYPE_LOAN:
-        for i in range(len(helper.allStateHelperList)):
-            state_helper = helper.allStateHelperList[i]
+        # for i in range(len(helper.allStateHelperList)):
+        #     state_helper = helper.allStateHelperList[i]
+        for state_helper in helper.allStateHelperList:
             data_iterator = state_helper.get_testloader()
-            for batch_id, batch in enumerate(data_iterator):
-                data, targets = state_helper.get_batch(data_iterator, batch, evaluation=True)
+            for batch_idx, batch in enumerate(data_iterator):
+                data, targets = state_helper.get_batch(data_iterator, batch, eval=True)
                 dataset_size += len(data)
                 output = model(data)
-                total_loss += nn.functional.cross_entropy(output, targets, reduction ='sum').item()  # sum up batch loss
+                total_loss += F.cross_entropy(output, targets, reduction ='sum').item()  # sum up batch loss
                 pred = output.data.max(1)[1]  # get the index of the max log-probability
                 correct += pred.eq(targets.data.view_as(pred)).cpu().sum().item()
 
@@ -35,27 +37,26 @@ def Mytest(helper, epoch, model, is_poison=False, visualize=True, agent_name_key
     #         or helper.params['type'] == config.TYPE_TINYIMAGENET:
     elif helper.params['type'] in [config.TYPE_CIFAR, config.TYPE_MNIST, config.TYPE_TINYIMAGENET]:
         data_iterator = helper.test_data
-        for batch_id, batch in enumerate(data_iterator):
-            data, targets = helper.get_batch(data_iterator, batch, evaluation=True)
+        for batch_idx, batch in enumerate(data_iterator):
+            data, targets = helper.get_batch(data_iterator, batch, eval=True)
             dataset_size += len(data)
             output = model(data)
-            total_loss += nn.functional.cross_entropy(output, targets, reduction='sum').item()  # sum up batch loss
+            total_loss += F.cross_entropy(output, targets, reduction='sum').item()  # sum up batch loss
             pred = output.data.max(1)[1]  # get the index of the max log-probability
             correct += pred.eq(targets.data.view_as(pred)).cpu().sum().item()
 
     acc = 100.0 * (float(correct) / float(dataset_size))  if dataset_size!=0 else 0
-    total_l = total_loss / dataset_size if dataset_size!=0 else 0
+    avg_loss = total_loss / dataset_size if dataset_size!=0 else 0
 
     main.logger.info('___Test {} poisoned: {}, epoch: {}: Average loss: {:.4f}, '
                      'Accuracy: {}/{} ({:.4f}%)'.format(model.name, is_poison, epoch,
-                                                        total_l, correct, dataset_size, acc))
+                                                        avg_loss, correct, dataset_size, acc))
 
-    if visualize: # loss =total_l
+    if visualize: # loss =avg_loss
         model.test_vis(vis=main.vis, epoch=epoch, acc=acc, loss=None,
-                       eid=helper.params['environment_name'],
-                       agent_name_key=str(agent_name_key))
+                       eid=helper.params['environment_name'], agent_name_key=str(agent_name_key))
     model.train()
-    return (total_l, acc, correct, dataset_size)
+    return (avg_loss, acc, correct, dataset_size)
 
 
 def Mytest_poison(helper, epoch, model, is_poison=False, visualize=True, agent_name_key=""):
@@ -84,7 +85,7 @@ def Mytest_poison(helper, epoch, model, is_poison=False, visualize=True, agent_n
             state_helper = helper.allStateHelperList[i]
             data_source = state_helper.get_testloader()
             data_iterator = data_source
-            for batch_id, batch in enumerate(data_iterator):
+            for batch_idx, batch in enumerate(data_iterator):
 
                 for index in range(len(batch[0])):
                     batch[1][index] = helper.params['poison_label_swap']
@@ -94,10 +95,10 @@ def Mytest_poison(helper, epoch, model, is_poison=False, visualize=True, agent_n
                         batch[0][index][helper.feature_dict[name]] = value
                     poison_data_count += 1
 
-                data, targets = state_helper.get_batch(data_source, batch, evaluation=True)
+                data, targets = state_helper.get_batch(data_source, batch, eval=True)
                 dataset_size += len(data)
                 output = model(data)
-                total_loss += nn.functional.cross_entropy(output, targets,
+                total_loss += F.cross_entropy(output, targets,
                                                           reduction='sum').item()  # sum up batch loss
                 pred = output.data.max(1)[1]  # get the index of the max log-probability
                 correct += pred.eq(targets.data.view_as(pred)).cpu().sum().item()
@@ -107,26 +108,26 @@ def Mytest_poison(helper, epoch, model, is_poison=False, visualize=True, agent_n
     #         or helper.params['type'] == config.TYPE_TINYIMAGENET:
     elif helper.params['type'] in [config.TYPE_CIFAR, config.TYPE_MNIST, config.TYPE_TINYIMAGENET]:
         data_iterator = helper.test_data_poison
-        for batch_id, batch in enumerate(data_iterator):
-            data, targets, poison_num = helper.get_poison_batch(batch, adversarial_index=-1, evaluation=True)
+        for batch_idx, batch in enumerate(data_iterator):
+            data, targets, poison_num = helper.get_poison_batch(batch, adversarial_index=-1, eval=True)
             poison_data_count += poison_num
             dataset_size += len(data)
             output = model(data)
-            total_loss += nn.functional.cross_entropy(output, targets, reduction='sum').item()  # sum up batch loss
+            total_loss += F.cross_entropy(output, targets, reduction='sum').item()  # sum up batch loss
             pred = output.data.max(1)[1]  # get the index of the max log-probability
             correct += pred.eq(targets.data.view_as(pred)).cpu().sum().item()
 
     acc = 100.0 * (float(correct) / float(poison_data_count))  if poison_data_count!=0 else 0
-    total_l = total_loss / poison_data_count if poison_data_count!=0 else 0
+    avg_loss = total_loss / poison_data_count if poison_data_count!=0 else 0
     main.logger.info('___Test {} poisoned: {}, epoch: {}: Average loss: {:.4f}, '
                      'Accuracy: {}/{} ({:.4f}%)'.format(model.name, is_poison, epoch,
-                                                        total_l, correct, poison_data_count, acc))
-    if visualize: #loss = total_l
+                                                        avg_loss, correct, poison_data_count, acc))
+    if visualize: #loss = avg_loss
         model.poison_test_vis(vis=main.vis, epoch=epoch, acc=acc, loss=None, 
                             eid=helper.params['environment_name'], agent_name_key=str(agent_name_key))
 
     model.train()
-    return total_l, acc, correct, poison_data_count
+    return avg_loss, acc, correct, poison_data_count
 
 
 def Mytest_poison_trigger(helper, model, adver_trigger_index):
@@ -157,7 +158,7 @@ def Mytest_poison_trigger(helper, model, adver_trigger_index):
             state_helper = helper.allStateHelperList[i]
             data_source = state_helper.get_testloader()
             data_iterator = data_source
-            for batch_id, batch in enumerate(data_iterator):
+            for batch_idx, batch in enumerate(data_iterator):
                 for index in range(len(batch[0])):
                     batch[1][index] = helper.params['poison_label_swap']
                     for j in range(0, len(trigger_names)):
@@ -165,10 +166,10 @@ def Mytest_poison_trigger(helper, model, adver_trigger_index):
                         value = trigger_values[j]
                         batch[0][index][helper.feature_dict[name]] = value
                     poison_data_count += 1
-                data, targets = state_helper.get_batch(data_source, batch, evaluation=True)
+                data, targets = state_helper.get_batch(data_source, batch, eval=True)
                 dataset_size += len(data)
                 output = model(data)
-                total_loss += nn.functional.cross_entropy(output, targets,
+                total_loss += F.cross_entropy(output, targets,
                                                           reduction='sum').item()  # sum up batch loss
                 pred = output.data.max(1)[1]  # get the index of the max log-probability
                 correct += pred.eq(targets.data.view_as(pred)).cpu().sum().item()
@@ -179,22 +180,22 @@ def Mytest_poison_trigger(helper, model, adver_trigger_index):
     elif helper.params['type'] in [config.TYPE_CIFAR, config.TYPE_MNIST, config.TYPE_TINYIMAGENET]:
         data_iterator = helper.test_data_poison
         adv_index = adver_trigger_index
-        for batch_id, batch in enumerate(data_iterator):
-            data, targets, poison_num = helper.get_poison_batch(batch, adversarial_index=adv_index, evaluation=True)
+        for batch_idx, batch in enumerate(data_iterator):
+            data, targets, poison_num = helper.get_poison_batch(batch, adversarial_index=adv_index, eval=True)
 
             poison_data_count += poison_num
             dataset_size += len(data)
             output = model(data)
-            total_loss += nn.functional.cross_entropy(output, targets,
+            total_loss += F.cross_entropy(output, targets,
                                                       reduction='sum').item()  # sum up batch loss
             pred = output.data.max(1)[1]  # get the index of the max log-probability
             correct += pred.eq(targets.data.view_as(pred)).cpu().sum().item()
 
     acc = 100.0 * (float(correct) / float(poison_data_count)) if poison_data_count!=0 else 0
-    total_l = total_loss / poison_data_count if poison_data_count!=0 else 0
+    avg_loss = total_loss / poison_data_count if poison_data_count!=0 else 0
 
     model.train()
-    return total_l, acc, correct, poison_data_count
+    return avg_loss, acc, correct, poison_data_count
 
 
 def Mytest_poison_agent_trigger(helper, model, agent_name_key):
@@ -218,7 +219,7 @@ def Mytest_poison_agent_trigger(helper, model, agent_name_key):
             state_helper = helper.allStateHelperList[i]
             data_source = state_helper.get_testloader()
             data_iterator = data_source
-            for batch_id, batch in enumerate(data_iterator):
+            for batch_idx, batch in enumerate(data_iterator):
                 for index in range(len(batch[0])):
                     batch[1][index] = helper.params['poison_label_swap']
                     for j in range(0, len(trigger_names)):
@@ -226,10 +227,10 @@ def Mytest_poison_agent_trigger(helper, model, agent_name_key):
                         value = trigger_values[j]
                         batch[0][index][helper.feature_dict[name]] = value
                     poison_data_count += 1
-                data, targets = state_helper.get_batch(data_source, batch, evaluation=True)
+                data, targets = state_helper.get_batch(data_source, batch, eval=True)
                 dataset_size += len(data)
                 output = model(data)
-                total_loss += nn.functional.cross_entropy(output, targets, reduction='sum').item()  # sum up batch loss
+                total_loss += F.cross_entropy(output, targets, reduction='sum').item()  # sum up batch loss
                 pred = output.data.max(1)[1]  # get the index of the max log-probability
                 correct += pred.eq(targets.data.view_as(pred)).cpu().sum().item()
 
@@ -245,17 +246,17 @@ def Mytest_poison_agent_trigger(helper, model, agent_name_key):
                 adv_index = temp_index
                 break
         
-        for batch_id, batch in enumerate(data_iterator):
-            data, targets, poison_num = helper.get_poison_batch(batch, adversarial_index=adv_index, evaluation=True)
+        for batch_idx, batch in enumerate(data_iterator):
+            data, targets, poison_num = helper.get_poison_batch(batch, adversarial_index=adv_index, eval=True)
             poison_data_count += poison_num
             dataset_size += len(data)
             output = model(data)
-            total_loss += nn.functional.cross_entropy(output, targets, reduction='sum').item()  # sum up batch loss
+            total_loss += F.cross_entropy(output, targets, reduction='sum').item()  # sum up batch loss
             pred = output.data.max(1)[1]  # get the index of the max log-probability
             correct += pred.eq(targets.data.view_as(pred)).cpu().sum().item()
 
     acc = 100.0 * (float(correct) / float(poison_data_count)) if poison_data_count!=0 else 0
-    total_l = total_loss / poison_data_count if poison_data_count!=0 else 0
+    avg_loss = total_loss / poison_data_count if poison_data_count!=0 else 0
 
     model.train()
-    return total_l, acc, correct, poison_data_count
+    return avg_loss, acc, correct, poison_data_count

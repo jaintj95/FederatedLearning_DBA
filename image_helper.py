@@ -280,29 +280,29 @@ class ImageHelper(Helper):
         return test_loader
 
 
-    def get_batch(self, train_data, bptt, evaluation=False):
-        #bptt is just a batch drawn using DataLoder
-        data, target = bptt
+    def get_batch(self, data_loader, batch, eval=False):
+
+        data, target = batch
         data = data.to(device)
         target = target.to(device)
         
-        if evaluation:
+        if eval:
             data.requires_grad_(False)
             target.requires_grad_(False)
         
         return data, target
 
 
-    def get_poison_batch(self, bptt, adversarial_idx=-1, evaluation=False):
+    def get_poison_batch(self, batch, adversarial_idx=-1, eval=False):
 
-        images, targets = bptt
+        images, targets = batch
 
         poison_count = 0
         new_images = images
         new_targets = targets
 
         for idx in range(0, len(images)):
-            if evaluation: # poison all data when testing
+            if eval: # poison all data when testing
                 new_targets[idx] = self.params['poison_label_swap']
                 new_images[idx] = self.add_pixel_pattern(images[idx], adversarial_idx)
                 poison_count += 1
@@ -319,7 +319,7 @@ class ImageHelper(Helper):
         new_images = new_images.to(device)
         new_targets = new_targets.to(device).long()
         
-        if evaluation:
+        if eval:
             new_images.requires_grad_(False)
             new_targets.requires_grad_(False)
 
