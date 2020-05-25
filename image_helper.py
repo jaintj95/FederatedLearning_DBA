@@ -323,7 +323,7 @@ class ImageHelper(Helper):
             new_images.requires_grad_(False)
             new_targets.requires_grad_(False)
 
-        return new_images,new_targets,poison_count
+        return new_images, new_targets, poison_count
 
 
     def add_pixel_pattern(self, ori_image, adversarial_idx):
@@ -366,9 +366,7 @@ if __name__ == '__main__':
     # show the data distribution among all participants.
     count_all = 0
     for party in participants:
-        cifar_class_count = dict()
-        for i in range(10):
-            cifar_class_count[i] = 0
+        cifar_class_count = defaultdict(int)
         count = 0
         _, data_iterator = helper.train_data[party]
         for batch_id, batch in enumerate(data_iterator):
@@ -377,6 +375,6 @@ if __name__ == '__main__':
                 cifar_class_count[t.item()] += 1
             count += len(targets)
         count_all += count
-        print(party, cifar_class_count,count, max(zip(cifar_class_count.values(), cifar_class_count.keys())))
+        print(party, cifar_class_count, count, max(zip(cifar_class_count.values(), cifar_class_count.keys())))
 
     print('avg', count_all*1.0/100)
