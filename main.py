@@ -9,6 +9,7 @@ import time
 import visdom
 import random
 import copy
+import numpy as np
 
 import torch
 from torch import nn
@@ -102,7 +103,7 @@ if __name__ == '__main__':
     
     print('Start training')
     
-    # np.random.seed(1) - Commented out by TJ
+    np.random.seed(1) 
 
     time_start_load_everything = time.time()
     
