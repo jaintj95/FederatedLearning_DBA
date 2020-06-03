@@ -1,12 +1,8 @@
-import argparse
 import torch
-import torch.nn as nn
+from torch import nn, optimizer
 import torch.nn.functional as F
-import torch.optim as optim
 from torchvision import datasets, transforms
-from torch.autograd import Variable
 import numpy as np
-import datetime
 
 
 class SimpleNet(nn.Module):
@@ -18,6 +14,7 @@ class SimpleNet(nn.Module):
     def train_vis(self, vis, epoch, acc, loss=None, eid='main', is_poisoned=False, name=None):
         if name is None:
             name = self.name + '_poisoned' if is_poisoned else self.name
+
         vis.line(X=np.array([epoch]), Y=np.array([acc]), name=name, win='train_acc_{0}'.format(self.created_time), env=eid,
                                 update='append' if vis.win_exists('train_acc_{0}'.format(self.created_time), env=eid) else None,
                                 opts=dict(showlegend=True, title='Train Accuracy_{0}'.format(self.created_time),
@@ -40,6 +37,7 @@ class SimpleNet(nn.Module):
                                  name=f'{name}' if name is not None else self.name, win=f'{win}_{self.created_time}',
                                  update='append' if vis.win_exists(f'{win}_{self.created_time}', env=eid) else None,
                                  opts=dict(showlegend=True, width=700, height=400, title='Train Batch loss_{0}'.format(self.created_time)))
+    
     def track_distance_batch_vis(self,vis, epoch, data_len, batch, distance_to_global_model,eid,name=None,is_poisoned=False):
         x= (epoch-1)*data_len+batch+1
 
@@ -48,17 +46,15 @@ class SimpleNet(nn.Module):
         else:
             name = name + '_poisoned' if is_poisoned else name
 
-
         vis.line(Y=np.array([distance_to_global_model]), X=np.array([x]),
                  win=f"global_dist_{self.created_time}",
                  env=eid,
                  name=f'Model_{name}',
-                 update='append' if
-                 vis.win_exists(f"global_dist_{self.created_time}",
-                                env=eid) else None,
+                 update='append' if vis.win_exists(f"global_dist_{self.created_time}", env=eid) else None,
                  opts=dict(showlegend=True,
                            title=f"Distance to Global {self.created_time}",
                            width=700, height=400))
+                           
     def weight_vis(self,vis,epoch,weight, eid, name,is_poisoned=False):
         name = str(name) + '_poisoned' if is_poisoned else name
         vis.line(Y=np.array([weight]), X=np.array([epoch]),
@@ -78,9 +74,7 @@ class SimpleNet(nn.Module):
                  win=f"FG_Alpha_{self.created_time}",
                  env=eid,
                  name=f'Model_{name}',
-                 update='append' if
-                 vis.win_exists(f"FG_Alpha_{self.created_time}",
-                                env=eid) else None,
+                 update='append' if vis.win_exists(f"FG_Alpha_{self.created_time}", env=eid) else None,
                  opts=dict(showlegend=True,
                            title=f"FG Alpha {self.created_time}",
                            width=700, height=400))
@@ -216,7 +210,6 @@ class SimpleNet(nn.Module):
                 # negative_tensor = (random_tensor*-1)+1
                 # own_state[name].copy_(param)
                 own_state[name].copy_(param.clone())
-
 
 
 

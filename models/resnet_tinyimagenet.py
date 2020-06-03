@@ -5,10 +5,9 @@ Reference:
     Deep Residual Learning for Image Recognition. arXiv:1512.03385
 '''
 import torch
-import torch.nn as nn
+from torch import nn
 import torch.nn.functional as F
 from models.simple import SimpleNet
-from torch.autograd import Variable
 # from torchvision.models.utils import load_state_dict_from_url
 
 
@@ -240,11 +239,9 @@ def resnet18(pretrained=False, progress=True,name=None, created_time=None,  **kw
 
 if __name__ == '__main__':
 
-    import torchvision.transforms as transforms
-    import torchvision.datasets as datasets
+    from torchvision import datasets, transforms
     import os
-    import torch.utils.data as data
-
+    from torch.utils.data import DataLoader
 
     # Data loading code
     data_transforms = {
@@ -264,9 +261,7 @@ if __name__ == '__main__':
     image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x),
                                               data_transforms[x])
                       for x in ['train', 'val']}
-    dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=100,
-                                                  shuffle=False, num_workers=64)
-                   for x in ['train', 'val']}
+    dataloaders = {x: DataLoader(image_datasets[x], batch_size=100, num_workers=64) for x in ['train', 'val']}
     dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
 
     target_model = resnet18(name='Target',
