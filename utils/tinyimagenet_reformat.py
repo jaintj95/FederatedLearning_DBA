@@ -1,11 +1,8 @@
-import io
-import pandas as pd
 import glob
 import os
-from shutil import move
-from os.path import join
-from os import listdir, rmdir
 import platform
+from shutil import move
+from os import listdir, rmdir
 
 target_folder = '../data/tiny-imagenet-200/val/'
 
@@ -22,19 +19,23 @@ for path in paths:
         file = path.split('\\')[-1]
     else:
         file = path.split('/')[-1]
+        
     folder = val_dict[file]
     if not os.path.exists(target_folder + str(folder)):
         os.mkdir(target_folder + str(folder))
 
-for path in paths:
-    if platform.system() == 'Windows':
-        file = path.split('\\')[-1]
-    else:
-        file = path.split('/')[-1]
-    folder = val_dict[file]
     dest = target_folder + str(folder) + '/' + str(file)
     move(path, dest)
 
+# for path in paths:
+#     if platform.system() == 'Windows':
+#         file = path.split('\\')[-1]
+#     else:
+#         file = path.split('/')[-1]
+#     folder = val_dict[file]
+#     dest = target_folder + str(folder) + '/' + str(file)
+#     move(path, dest)
+
 os.remove('../data/tiny-imagenet-200/val/val_annotations.txt')
 rmdir('../data/tiny-imagenet-200/val/images')
-print('done reformat the validation images')
+print('Successfully reformatted the validation images')
