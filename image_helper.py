@@ -208,7 +208,7 @@ class ImageHelper(Helper):
             transform_test = transforms.Compose([
                     # transforms.Resize(224),
                     transforms.ToTensor(),
-                ]),
+                ])
 
             _data_dir = './data/tiny-imagenet-200/'
             self.train_dataset = datasets.ImageFolder(os.path.join(_data_dir, 'train'), transform=transform_train)

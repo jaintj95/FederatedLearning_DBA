@@ -34,7 +34,7 @@ class Helper:
         self.best_loss = math.inf
         self.folder_path = f'saved_models/model_{self.name}_{current_time}'
         try:
-            os.mkdir(self.folder_path)
+            os.makedirs(self.folder_path)
         except FileExistsError:
             logger.info('Folder already exists')
         logger.addHandler(logging.FileHandler(filename=f'{self.folder_path}/log.txt'))

@@ -12,7 +12,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 import torch
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Dataset
 from torchvision import datasets, transforms
 
 from models.loan_model import LoanNet
@@ -138,7 +138,7 @@ class LoanHelper(Helper):
             self.participants_list= self.benign_namelist+ self.advasarial_namelist
 
 
-class LoanDataset(data.Dataset):
+class LoanDataset(Dataset):
     # label from 0 ~ 8
     # ['Current', 'Fully Paid', 'Late (31-120 days)', 'In Grace Period', 'Charged Off',
     # 'Late (16-30 days)', 'Default', 'Does not meet the credit policy. Status:Fully Paid',
