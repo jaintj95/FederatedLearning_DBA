@@ -434,7 +434,7 @@ class Helper:
                 self.save_checkpoint(saved_dict, False, f'{model_name}.best')
                 self.best_loss = val_loss
 
-    def update_epoch_submit_dict(self,epochs_submit_update_dict,global_epochs_submit_dict, epoch,state_keys):
+    def update_epoch_submit_dict(self, epochs_submit_update_dict, global_epochs_submit_dict, epoch, state_keys):
 
         epoch_len= len(epochs_submit_update_dict[state_keys[0]])
         for j in range(0, epoch_len):
@@ -453,8 +453,8 @@ class Helper:
         with open(f'{self.folder_path}/epoch_submit_update.json', 'w') as outfile:
             json.dump(global_epochs_submit_dict, outfile, ensure_ascii=False, indent=1)
 
-    def estimate_fisher(self, model, criterion,
-                        data_loader, sample_size, batch_size=64):
+
+    def estimate_fisher(self, model, criterion, data_loader, sample_size, batch_size=64):
         # sample loglikelihoods from the dataset.
         loglikelihoods = []
         if self.params['type'] == 'text':
@@ -464,8 +464,7 @@ class Helper:
             data_iterator = data_loader
 
         for batch_id, batch in enumerate(data_iterator):
-            data, targets = self.get_batch(data_loader, batch,
-                                           evaluation=False)
+            data, targets = self.get_batch(data_loader, batch, eval=False)
             if self.params['type'] == 'text':
                 hidden = self.repackage_hidden(hidden)
                 output, hidden = model(data, hidden)
