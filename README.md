@@ -2,7 +2,7 @@
 
 ## Note - This repo was created so that I could cleanup AlphaPav's repo (https://github.com/AlphaPav/DBA) for personal use. All original work belongs to the concerned parties mentioned in the original repo. 
 
-In this repository, code is for our ICLR 2020 paper [DBA: Distributed Backdoor Attacks against Federated Learning](https://openreview.net/forum?id=rkgyS0VFvr)
+This repository contains the code is for ICLR 2020 paper [DBA: Distributed Backdoor Attacks against Federated Learning](https://openreview.net/forum?id=rkgyS0VFvr)
 
 ## Installation
 
@@ -68,7 +68,7 @@ and then execute the `process_tiny_data.sh` script in utils directory
 
 MNIST and CIFAR will be automatically download
 
-### Reproduce experiments
+## Run experiments
 
 - prepare the pretrained model:
 Our pretrained clean models for attack can be downloaded from [Google Drive](https://drive.google.com/file/d/1wcJ_DkviuOLkmr-FgIVSFwnZwyGU8SjH/view?usp=sharing). You can also train from the round 0 to obtain the pretrained clean model.
