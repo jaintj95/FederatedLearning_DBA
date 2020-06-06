@@ -25,8 +25,16 @@ cd ./utils
 - reformat the dataset.
 ```
 cd ./utils
-./process_tiny_data.sh
+python tinyimagenet_reformat.py
 ```
+Note: If the above command fails, comment out the following snippet from tinyimagenet_reformat.py
+```
+with zipfile.ZipFile(source_dir, 'r') as zip_ref:
+    if not os.path.exists("../data"):
+        os.mkdir("../data")
+    zip_ref.extractall("../data")
+```
+and then execute the `process_tiny_data.sh` script in utils directory
 
 #### Others:
 MNIST and CIFAR will be automatically download
