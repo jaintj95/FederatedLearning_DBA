@@ -20,17 +20,33 @@ Install PyTorch and other missing packages
 #### LOAN dataset
 
 - download the raw dataset [lending-club-loan-data.zip](https://www.kaggle.com/wendykan/lending-club-loan-data/) into dir `./utils`
+- rename the zip to `lending-club-loan-data.zip`
 - preprocess the dataset.
 
+```
+cd ./utils
+python load_preprocess.py
+```
+
+Note: If the above command fails, comment out the following snippet from loan_preprocess.py
+
+```python
+with zipfile.ZipFile(source_dir, 'r') as zip_ref:
+    if not os.path.exists("../data"):
+        os.mkdir("../data")
+    zip_ref.extractall("../data")
+```
+
+and then execute the `process_loan_data.sh` script in utils directory
 ```
 cd ./utils
 ./process_loan_data.sh
 ```
 
-#### Tiny-imagenet dataset:
+#### Tiny-imagenet dataset
 
 - download the dataset [tiny-imagenet-200.zip](https://tiny-imagenet.herokuapp.com/) into dir `./utils`
-- reformat the dataset
+- preprocess the dataset
 
 ```
 cd ./utils

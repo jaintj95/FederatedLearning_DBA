@@ -1,5 +1,15 @@
 import csv
 import pandas as pd
+import os
+import zipfile
+
+source_dir = "lending-club-loan-data.zip"
+
+with zipfile.ZipFile(source_dir, 'r') as zip_ref:
+    if not os.path.exists("../data"):
+        os.mkdir("../data")
+    zip_ref.extractall("../data")
+
 
 filepath = '../data/lending-club-loan-data/loan.csv'
 df = pd.read_csv(filepath)
