@@ -1,10 +1,19 @@
 import glob
 import os
 import platform
+import zipfile
 from shutil import move
 from os import listdir, rmdir
 
+source_dir = "tiny-imagenet-200.zip"
 target_folder = '../data/tiny-imagenet-200/val/'
+
+
+# Extract tiny imagenet zip
+with zipfile.ZipFile(source_dir, 'r') as zip_ref:
+    if not os.path.exists("../data"):
+        os.mkdir("../data")
+    zip_ref.extractall("../data")
 
 val_dict = {}
 with open(target_folder + 'val_annotations.txt', 'r') as f:

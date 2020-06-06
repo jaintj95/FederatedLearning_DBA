@@ -76,7 +76,7 @@ def ImageTrain(helper, start_epoch, local_model, target_model, is_poison,agent_n
                     dataset_size = 0
                     dis2global_list=[]
                     for batch_id, batch in enumerate(data_iterator):
-                        data, targets, poison_num = helper.get_poison_batch(batch, adversarial_index=adversarial_index,evaluation=False)
+                        data, targets, poison_num = helper.get_poison_batch(batch, adversarial_index=adversarial_index, eval=False)
                         poison_optimizer.zero_grad()
                         dataset_size += len(data)
                         poison_data_count += poison_num
@@ -201,7 +201,7 @@ def ImageTrain(helper, start_epoch, local_model, target_model, is_poison,agent_n
                     for batch_id, batch in enumerate(data_iterator):
 
                         optimizer.zero_grad()
-                        data, targets = helper.get_batch(data_iterator, batch,evaluation=False)
+                        data, targets = helper.get_batch(data_iterator, batch, eval=False)
 
                         dataset_size += len(data)
                         output = model(data)

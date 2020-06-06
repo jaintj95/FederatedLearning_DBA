@@ -177,8 +177,7 @@ def LoanTrain(helper, start_epoch, local_model, target_model, is_poison,state_ke
                     dataset_size = 0
                     for batch_id, batch in enumerate(data_iterator):
                         optimizer.zero_grad()
-                        data, targets = helper.statehelper_dic[state_key].get_batch(data_iterator, batch,
-                                                                                    evaluation=False)
+                        data, targets = helper.statehelper_dic[state_key].get_batch(data_iterator, batch, eval=False)
                         dataset_size += len(data)
                         output = model(data)
                         loss = nn.functional.cross_entropy(output, targets)

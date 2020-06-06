@@ -4,8 +4,9 @@ Reference:
 [1] Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun
     Deep Residual Learning for Image Recognition. arXiv:1512.03385
 '''
+
 import torch
-import torch.nn as nn
+from torch import nn
 import torch.nn.functional as F
 from models.simple import SimpleNet
 from torch.autograd import Variable
@@ -119,5 +120,7 @@ def ResNet152(name=None, created_time=None):
 if __name__ == '__main__':
 
     net = ResNet18()
+
+    # Variable has been deprecated. Fix this
     y = net(Variable(torch.randn(1,3,32,32)))
     print(y.size())
