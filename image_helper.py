@@ -20,8 +20,9 @@ from models.resnet_cifar import ResNet18
 from models.MnistNet import MnistNet
 from models.resnet_tinyimagenet import resnet18
 
-os.environ['KMP_DUPLICATE_LIB_OK']='True'
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 logger = logging.getLogger("logger")
+
 
 class ImageHelper(Helper):
     """
@@ -53,7 +54,7 @@ class ImageHelper(Helper):
             else:
                 loaded_params = torch.load(f"saved_models/{self.params['resumed_model_name']}", map_location='cpu')
             target_model.load_state_dict(loaded_params['state_dict'])
-            self.start_epoch = loaded_params['epoch']+1
+            self.start_epoch = loaded_params['epoch'] + 1
             self.params['lr'] = loaded_params.get('lr', self.params['lr'])
             logger.info(f"Loaded parameters from saved model: LR is"
                         f" {self.params['lr']} and current epoch is {self.start_epoch}")
@@ -62,7 +63,6 @@ class ImageHelper(Helper):
 
         self.local_model = local_model
         self.target_model = target_model
-
 
     def build_classes_dict(self):
         cifar_classes = {}
@@ -74,7 +74,6 @@ class ImageHelper(Helper):
                 cifar_classes[label] = [ind]
         return cifar_classes
 
-
     def sample_dirichlet_train_data(self, no_participants, alpha=0.9):
         """
         Input: Number of participants and alpha (param for distribution)
@@ -85,15 +84,15 @@ class ImageHelper(Helper):
         """
 
         cifar_classes = self.classes_dict
-        class_size = len(cifar_classes[0]) #for cifar: 5000
+        class_size = len(cifar_classes[0])  # for cifar: 5000
         per_participant_list = defaultdict(list)
-        no_classes = len(cifar_classes.keys())  #for cifar: 10
+        no_classes = len(cifar_classes.keys())  # for cifar: 10
 
         image_nums = []
         for n in range(no_classes):
             image_num = []
             random.shuffle(cifar_classes[n])
-            sampled_probabilities = class_size * np.random.dirichlet(np.array(no_participants*[alpha]))
+            sampled_probabilities = class_size * np.random.dirichlet(np.array(no_participants * [alpha]))
             for user in range(no_participants):
                 no_imgs = int(round(sampled_probabilities[user]))
                 sampled_list = cifar_classes[n][:min(len(cifar_classes[n]), no_imgs)]
@@ -104,29 +103,28 @@ class ImageHelper(Helper):
         # self.draw_dirichlet_plot(no_classes,no_participants,image_nums,alpha)
         return per_participant_list
 
-
     def draw_dirichlet_plot(self, no_classes, no_participants, image_nums, alpha):
-        
+
         fig = plt.figure(figsize=(10, 5))
         s = np.empty([no_classes, no_participants])
-        
+
         # What's going on here? N^2 loop maybe unnecessary - TJ
         for i in range(0, len(image_nums)):
             for j in range(0, len(image_nums[0])):
                 s[i][j] = image_nums[i][j]
-        
+
         s = s.transpose()
         left = 0
         y_labels = []
         category_colors = plt.get_cmap('RdYlGn')(np.linspace(0.15, 0.85, no_participants))
-        
+
         for k in range(no_classes):
             y_labels.append('Label ' + str(k))
-        
-        vis_par = [0,10,20,30]
 
-        for k in range(no_participants):
+        vis_par = [0, 10, 20, 30]
+
         # for k in vis_par:
+        for k in range(no_participants):
             color = category_colors[k]
             plt.barh(y_labels, s[k], left=left, label=str(k), color=color)
             widths = s[k]
@@ -146,14 +144,13 @@ class ImageHelper(Helper):
         # plt.yticks([])
         fig.tight_layout(pad=0.1)
         # plt.ylabel("Label",fontsize='small')
-        fig.savefig(self.folder_path+'/Num_Img_Dirichlet_Alpha{}.pdf'.format(alpha))
-
+        fig.savefig(self.folder_path + '/Num_Img_Dirichlet_Alpha{}.pdf'.format(alpha))
 
     def poison_test_dataset(self):
         logger.info('get poison test loader')
         # delete the test data with target label
 
-        test_classes = {} #HashMap of classes & indices of corresponding datapts 
+        test_classes = {}  # HashMap of classes & indices of corresponding datapts
         for ind, x in enumerate(self.test_dataset):
             _, label = x
             if label in test_classes:
@@ -161,8 +158,8 @@ class ImageHelper(Helper):
             else:
                 test_classes[label] = [ind]
 
-        #range_no_id = list(range(0, len(self.test_dataset)))
-        range_map = {idx:False for idx in range(len(self.test_dataset))}
+        # range_no_id = list(range(0, len(self.test_dataset)))
+        range_map = {idx: False for idx in range(len(self.test_dataset))}
         for image_ind in test_classes[self.params['poison_label_swap']]:
             if image_ind in range_map:
                 del range_map[image_ind]
@@ -171,28 +168,27 @@ class ImageHelper(Helper):
         poison_label_inds = test_classes[self.params['poison_label_swap']]
 
         range_loader = DataLoader(self.test_dataset, batch_size=self.params['batch_size'],
-                        sampler=SubsetRandomSampler(range_no_id))
+                                  sampler=SubsetRandomSampler(range_no_id))
         poison_loader = DataLoader(self.test_dataset, batch_size=self.params['batch_size'],
-                        sampler=SubsetRandomSampler(poison_label_inds))
+                                   sampler=SubsetRandomSampler(poison_label_inds))
 
         return range_loader, poison_loader
-
 
     def load_data(self):
         logger.info('Loading data')
         dataPath = './data'
         if self.params['type'] == config.TYPE_CIFAR:
             ### data load
-            transform_train = transforms.Compose([transforms.ToTensor(),])
-            transform_test = transforms.Compose([transforms.ToTensor(),])
+            transform_train = transforms.Compose([transforms.ToTensor(), ])
+            transform_test = transforms.Compose([transforms.ToTensor(), ])
 
             self.train_dataset = datasets.CIFAR10(dataPath, train=True, download=True, transform=transform_train)
             self.test_dataset = datasets.CIFAR10(dataPath, train=False, transform=transform_test)
 
         elif self.params['type'] == config.TYPE_MNIST:
 
-            transform_train = transforms.Compose([transforms.ToTensor(),])
-            transform_test = transforms.Compose([transforms.ToTensor(),])
+            transform_train = transforms.Compose([transforms.ToTensor(), ])
+            transform_test = transforms.Compose([transforms.ToTensor(), ])
 
             self.train_dataset = datasets.MNIST('./data', train=True, download=True, transform=transform_train)
             self.test_dataset = datasets.MNIST('./data', train=False, transform=transform_test)
@@ -200,15 +196,15 @@ class ImageHelper(Helper):
         elif self.params['type'] == config.TYPE_TINYIMAGENET:
 
             transform_train = transforms.Compose([
-                    # transforms.Resize(224),
-                    transforms.RandomHorizontalFlip(),
-                    transforms.ToTensor(),
-                ])
+                # transforms.Resize(224),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+            ])
 
             transform_test = transforms.Compose([
-                    # transforms.Resize(224),
-                    transforms.ToTensor(),
-                ])
+                # transforms.Resize(224),
+                transforms.ToTensor(),
+            ])
 
             _data_dir = './data/tiny-imagenet-200/'
             self.train_dataset = datasets.ImageFolder(os.path.join(_data_dir, 'train'), transform=transform_train)
@@ -221,7 +217,7 @@ class ImageHelper(Helper):
         if self.params['sampling_dirichlet']:
             ## sample indices for participants using Dirichlet distribution
             indices_per_participant = self.sample_dirichlet_train_data(
-                self.params['number_of_total_participants'], #100
+                self.params['number_of_total_participants'],  # 100
                 alpha=self.params['dirichlet_alpha'])
             train_loaders = [(pos, self.get_train(indices)) for pos, indices in
                              indices_per_participant.items()]
@@ -246,7 +242,6 @@ class ImageHelper(Helper):
         # random.shuffle(self.participants_list)
         self.benign_namelist = list(set(self.participants_list) - set(self.advasarial_namelist))
 
-
     def get_train(self, indices):
         """
         This method is used along with Dirichlet distribution
@@ -255,9 +250,8 @@ class ImageHelper(Helper):
         :return:
         """
         train_loader = DataLoader(self.train_dataset, batch_size=self.params['batch_size'],
-                                sampler=SubsetRandomSampler(indices), pin_memory=True, num_workers=8)
+                                  sampler=SubsetRandomSampler(indices), pin_memory=True, num_workers=8)
         return train_loader
-
 
     def get_train_old(self, all_range, model_no):
         """
@@ -269,29 +263,26 @@ class ImageHelper(Helper):
         """
 
         data_len = int(len(self.train_dataset) / self.params['number_of_total_participants'])
-        sub_indices = all_range[model_no*data_len : (model_no+1)*data_len]
+        sub_indices = all_range[model_no * data_len: (model_no + 1) * data_len]
         train_loader = DataLoader(self.train_dataset, batch_size=self.params['batch_size'],
-                                sampler=SubsetRandomSampler(sub_indices))
+                                  sampler=SubsetRandomSampler(sub_indices))
         return train_loader
-
 
     def get_test(self):
         test_loader = DataLoader(self.test_dataset, batch_size=self.params['test_batch_size'], shuffle=True)
         return test_loader
-
 
     def get_batch(self, data_loader, batch, eval=False):
 
         data, target = batch
         data = data.to(device)
         target = target.to(device)
-        
+
         if eval:
             data.requires_grad_(False)
             target.requires_grad_(False)
-        
-        return data, target
 
+        return data, target
 
     def get_poison_batch(self, batch, adversarial_idx=-1, eval=False):
 
@@ -302,12 +293,12 @@ class ImageHelper(Helper):
         new_targets = targets
 
         for idx in range(0, len(images)):
-            if eval: # poison all data when testing
+            if eval:  # poison all data when testing
                 new_targets[idx] = self.params['poison_label_swap']
                 new_images[idx] = self.add_pixel_pattern(images[idx], adversarial_idx)
                 poison_count += 1
 
-            else: # poison part of data when training
+            else:  # poison part of data when training
                 if idx < self.params['poisoning_per_batch']:
                     new_targets[idx] = self.params['poison_label_swap']
                     new_images[idx] = self.add_pixel_pattern(images[idx], adversarial_idx)
@@ -318,26 +309,25 @@ class ImageHelper(Helper):
 
         new_images = new_images.to(device)
         new_targets = new_targets.to(device).long()
-        
+
         if eval:
             new_images.requires_grad_(False)
             new_targets.requires_grad_(False)
 
         return new_images, new_targets, poison_count
 
-
     def add_pixel_pattern(self, ori_image, adversarial_idx):
         image = copy.deepcopy(ori_image)
         poison_patterns = []
 
         if adversarial_idx == -1:
-            for i in range(0,self.params['trigger_num']):
+            for i in range(0, self.params['trigger_num']):
                 poison_patterns = poison_patterns + self.params[str(i) + '_poison_pattern']
-        else :
+        else:
             poison_patterns = self.params[str(adversarial_idx) + '_poison_pattern']
-        
+
         if self.params['type'] == config.TYPE_CIFAR or self.params['type'] == config.TYPE_TINYIMAGENET:
-            for i in range(0,len(poison_patterns)):
+            for i in range(0, len(poison_patterns)):
                 pos = poison_patterns[i]
                 image[0][pos[0]][pos[1]] = 1
                 image[1][pos[0]][pos[1]] = 1
@@ -350,6 +340,7 @@ class ImageHelper(Helper):
                 image[0][pos[0]][pos[1]] = 1
 
         return image
+
 
 if __name__ == '__main__':
 
@@ -377,4 +368,4 @@ if __name__ == '__main__':
         count_all += count
         print(party, cifar_class_count, count, max(zip(cifar_class_count.values(), cifar_class_count.keys())))
 
-    print('avg', count_all*1.0/100)
+    print('avg', count_all * 1.0 / 100)
