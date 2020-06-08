@@ -20,7 +20,7 @@ class SimpleNet(nn.Module):
                                 opts=dict(showlegend=True, title='Train Accuracy_{0}'.format(self.created_time),
                                           width=700, height=400))
         if loss is not None:
-            vis.line(X=np.array([epoch]), Y=np.array([loss]), name=name, env=eid,
+            vis.line(X=np.array([epoch]), Y=np.array([loss.cpu().data.numpy()]), name=name, env=eid,
                                      win='train_loss_{0}'.format(self.created_time),
                                      update='append' if vis.win_exists('train_loss_{0}'.format(self.created_time), env=eid) else None,
                                      opts=dict(showlegend=True, title='Train Loss_{0}'.format(self.created_time), width=700, height=400))
@@ -32,7 +32,7 @@ class SimpleNet(nn.Module):
         else:
             name = name + '_poisoned' if is_poisoned else name
 
-        vis.line(X=np.array([(epoch-1)*data_len+batch]), Y=np.array([loss]),
+        vis.line(X=np.array([(epoch-1)*data_len+batch]), Y=np.array([loss.cpu().data.numpy()]),
                                  env=eid,
                                  name=f'{name}' if name is not None else self.name, win=f'{win}_{self.created_time}',
                                  update='append' if vis.win_exists(f'{win}_{self.created_time}', env=eid) else None,

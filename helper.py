@@ -266,8 +266,10 @@ class Helper:
             # update_per_layer = update_per_layer * 1.0 / epoch_interval
             if self.params['diff_privacy']:
                 update_per_layer.add_(self.dp_noise(data, self.params['sigma']))
-
-            data.add_(update_per_layer)
+            if len(update_per_layer.shape) == 0:
+                continue
+            else:
+                data.add_(update_per_layer)
         return True
 
     def foolsgold_update(self, target_model, updates):
