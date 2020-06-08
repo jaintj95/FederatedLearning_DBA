@@ -28,9 +28,6 @@ class ImageHelper(Helper):
     Helper class for Image Datasets i.e. CIFAR, MNIST & Tiny-ImageNet
     """
 
-    def __init__(self):
-        super().__init__()
-
     def create_model(self):
         local_model = None
         target_model = None
