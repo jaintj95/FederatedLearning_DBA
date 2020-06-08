@@ -247,8 +247,8 @@ def Mytest_poison_agent_trigger(helper, model, agent_name_key):
         #         adv_index = temp_index
         #         break
 
-        for temp_index in helper.params['adversary_list']:
-            if int(agent_name_key) == helper.params['adversary_list'][temp_index]:
+        for idx, temp_index in enumerate(helper.params['adversary_list']):
+            if int(agent_name_key) == helper.params['adversary_list'][idx]:
                 adv_index = temp_index
                 break
         
