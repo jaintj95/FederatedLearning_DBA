@@ -106,7 +106,7 @@ def Mytest_poison(helper, epoch, model, is_poison=False, visualize=True, agent_n
     elif helper.params['type'] in [config.TYPE_CIFAR, config.TYPE_MNIST, config.TYPE_TINYIMAGENET]:
         data_iterator = helper.test_data_poison
         for batch_idx, batch in enumerate(data_iterator):
-            data, targets, poison_num = helper.get_poison_batch(batch, adversarial_index=-1, eval=True)
+            data, targets, poison_num = helper.get_poison_batch(batch, adversarial_idx=-1, eval=True)
             poison_data_count += poison_num
             dataset_size += len(data)
             output = model(data)
@@ -177,7 +177,7 @@ def Mytest_poison_trigger(helper, model, adver_trigger_index):
         data_iterator = helper.test_data_poison
         adv_index = adver_trigger_index
         for batch_idx, batch in enumerate(data_iterator):
-            data, targets, poison_num = helper.get_poison_batch(batch, adversarial_index=adv_index, eval=True)
+            data, targets, poison_num = helper.get_poison_batch(batch, adversarial_idx=adv_index, eval=True)
             poison_data_count += poison_num
             dataset_size += len(data)
             output = model(data)
@@ -254,7 +254,7 @@ def Mytest_poison_agent_trigger(helper, model, agent_name_key):
         
 
         for batch_idx, batch in enumerate(data_iterator):
-            data, targets, poison_num = helper.get_poison_batch(batch, adversarial_index=adv_index, eval=True)
+            data, targets, poison_num = helper.get_poison_batch(batch, adversarial_idx=adv_index, eval=True)
             poison_data_count += poison_num
             dataset_size += len(data)
             output = model(data)
