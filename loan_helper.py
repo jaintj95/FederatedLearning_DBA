@@ -12,7 +12,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 import torch
-import torch.utils.data as data
+#import torch.utils.data as data
 from torch.utils.data import DataLoader, Dataset
 from torchvision import datasets, transforms
 
@@ -221,8 +221,7 @@ if __name__ == '__main__':
 
     current_time = datetime.now().strftime('%b.%d_%H.%M.%S')
 
-    helper = LoanHelper(current_time=current_time, params=params_loaded,
-                        name=params_loaded.get('name', 'loan'))
+    helper = LoanHelper(current_time=current_time, params=params_loaded, name=params_loaded.get('name', 'loan'))
     helper.load_data(params_loaded)
     state_keys = list(helper.statehelper_dic.keys())
     for i in range(0,len(state_keys)):
