@@ -14,7 +14,6 @@ from torch.utils.data.sampler import SubsetRandomSampler
 from torchvision import datasets, transforms
 
 import config
-from config import device
 from helper import Helper
 from models.resnet_cifar import ResNet18
 from models.MnistNet import MnistNet
@@ -28,6 +27,9 @@ class ImageHelper(Helper):
     """
     Helper class for Image Datasets i.e. CIFAR, MNIST & Tiny-ImageNet
     """
+
+    def __init__(self):
+        super().__init__()
 
     def create_model(self):
         local_model = None
@@ -45,8 +47,8 @@ class ImageHelper(Helper):
             local_model = resnet18(name='Local', created_time=self.params['current_time'])
             target_model = resnet18(name='Target', created_time=self.params['current_time'])
 
-        local_model = local_model.to(device)
-        target_model = target_model.to(device)
+        local_model = local_model.to(config.device)
+        target_model = target_model.to(config.device)
 
         if self.params['resumed_model']:
             if torch.cuda.is_available():
@@ -76,8 +78,10 @@ class ImageHelper(Helper):
 
     def sample_dirichlet_train_data(self, no_participants, alpha=0.9):
         """
-        Input: Number of participants and alpha (param for distribution)
-        Output: A list of indices denoting data in CIFAR training set.
+        Args:
+            no_participants: Number of participants
+            alpha: (param for distribution)
+        Returns: A list of indices denoting data in CIFAR training set.
         Requires: cifar_classes, a preprocessed class-indice dictionary.
         Sample Method: take a uniformly sampled 10-dimension vector as parameters 
             for dirichlet distribution to sample number of images in each class.
@@ -178,7 +182,6 @@ class ImageHelper(Helper):
         logger.info('Loading data')
         dataPath = './data'
         if self.params['type'] == config.TYPE_CIFAR:
-            ### data load
             transform_train = transforms.Compose([transforms.ToTensor(), ])
             transform_test = transforms.Compose([transforms.ToTensor(), ])
 
@@ -186,7 +189,6 @@ class ImageHelper(Helper):
             self.test_dataset = datasets.CIFAR10(dataPath, train=False, transform=transform_test)
 
         elif self.params['type'] == config.TYPE_MNIST:
-
             transform_train = transforms.Compose([transforms.ToTensor(), ])
             transform_test = transforms.Compose([transforms.ToTensor(), ])
 
@@ -194,13 +196,11 @@ class ImageHelper(Helper):
             self.test_dataset = datasets.MNIST('./data', train=False, transform=transform_test)
 
         elif self.params['type'] == config.TYPE_TINYIMAGENET:
-
             transform_train = transforms.Compose([
                 # transforms.Resize(224),
                 transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
             ])
-
             transform_test = transforms.Compose([
                 # transforms.Resize(224),
                 transforms.ToTensor(),
@@ -209,20 +209,20 @@ class ImageHelper(Helper):
             _data_dir = './data/tiny-imagenet-200/'
             self.train_dataset = datasets.ImageFolder(os.path.join(_data_dir, 'train'), transform=transform_train)
             self.test_dataset = datasets.ImageFolder(os.path.join(_data_dir, 'val'), transform=transform_test)
-            logger.info('reading data done')
 
+        logger.info('Successfully loaded data from {}'.format(self.params['type']))
         self.classes_dict = self.build_classes_dict()
         logger.info('build_classes_dict done')
 
         if self.params['sampling_dirichlet']:
-            ## sample indices for participants using Dirichlet distribution
+            # sample indices for participants using Dirichlet distribution
             indices_per_participant = self.sample_dirichlet_train_data(
                 self.params['number_of_total_participants'],  # 100
                 alpha=self.params['dirichlet_alpha'])
             train_loaders = [(pos, self.get_train(indices)) for pos, indices in
                              indices_per_participant.items()]
         else:
-            ## sample indices for participants that are equally
+            # sample indices for participants that are equally
             all_range = list(range(len(self.train_dataset)))
             random.shuffle(all_range)
             train_loaders = [(pos, self.get_train_old(all_range, pos))
@@ -235,7 +235,7 @@ class ImageHelper(Helper):
 
         self.advasarial_namelist = self.params['adversary_list']
 
-        if self.params['is_random_namelist'] == False:
+        if not self.params['is_random_namelist']:
             self.participants_list = self.params['participants_namelist']
         else:
             self.participants_list = list(range(self.params['number_of_total_participants']))
@@ -245,9 +245,8 @@ class ImageHelper(Helper):
     def get_train(self, indices):
         """
         This method is used along with Dirichlet distribution
-        :param params:
-        :param indices:
-        :return:
+        Args:
+            indices:
         """
         train_loader = DataLoader(self.train_dataset, batch_size=self.params['batch_size'],
                                   sampler=SubsetRandomSampler(indices), pin_memory=True, num_workers=8)
@@ -256,10 +255,9 @@ class ImageHelper(Helper):
     def get_train_old(self, all_range, model_no):
         """
         This method equally splits the dataset.
-        :param params:
-        :param all_range:
-        :param model_no:
-        :return:
+        Args:
+            all_range:
+            model_no:
         """
 
         data_len = int(len(self.train_dataset) / self.params['number_of_total_participants'])
@@ -275,8 +273,8 @@ class ImageHelper(Helper):
     def get_batch(self, data_loader, batch, eval=False):
 
         data, target = batch
-        data = data.to(device)
-        target = target.to(device)
+        data = data.to(config.device)
+        target = target.to(config.device)
 
         if eval:
             data.requires_grad_(False)
@@ -287,7 +285,6 @@ class ImageHelper(Helper):
     def get_poison_batch(self, batch, adversarial_idx=-1, eval=False):
 
         images, targets = batch
-
         poison_count = 0
         new_images = images
         new_targets = targets
@@ -307,8 +304,8 @@ class ImageHelper(Helper):
                     new_images[idx] = images[idx]
                     new_targets[idx] = targets[idx]
 
-        new_images = new_images.to(device)
-        new_targets = new_targets.to(device).long()
+        new_images = new_images.to(config.device)
+        new_targets = new_targets.to(config.device).long()
 
         if eval:
             new_images.requires_grad_(False)
@@ -334,7 +331,6 @@ class ImageHelper(Helper):
                 image[2][pos[0]][pos[1]] = 1
 
         elif self.params['type'] == config.TYPE_MNIST:
-
             for i in range(0, len(poison_patterns)):
                 pos = poison_patterns[i]
                 image[0][pos[0]][pos[1]] = 1
