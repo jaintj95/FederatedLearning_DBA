@@ -198,7 +198,7 @@ class Helper:
         # noised_layer = torch.cuda.FloatTensor(param.shape).normal_(mean=0, std=sigma)
         # noised_layer = torch.Tensor(param.shape).normal_(mean=0, std=sigma)
         noised_layer = torch.normal(mean=0, std=sigma, size=param.shape)
-        noised_layer.to(config.device)
+        noised_layer = noised_layer.to(config.device)
 
         return noised_layer
 
