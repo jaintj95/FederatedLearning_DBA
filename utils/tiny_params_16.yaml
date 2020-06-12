@@ -89,7 +89,7 @@ batch_track_distance: false
 log_interval: 2
 alpha_loss: 1
 s_norm: 1000000
-diff_privacy: false
+diff_privacy: true
 sigma: 0.01
 poison_momentum: 0.9
 poison_decay: 0.005
