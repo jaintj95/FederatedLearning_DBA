@@ -1,6 +1,6 @@
-import torch.nn as nn
 import math
-import torch.utils.model_zoo as model_zoo
+from torch import nn
+from torch.utils import model_zoo
 
 from models.simple import SimpleNet
 
@@ -99,8 +99,7 @@ class ResNet(SimpleNet):
     def __init__(self, block, layers, num_classes=1000, name=None, created_time=None):
         self.inplanes = 64
         super(ResNet, self).__init__(name, created_time)
-        self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3,
-                               bias=False)
+        self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3, bias=False)
         self.bn1 = nn.BatchNorm2d(64)
         self.relu = nn.ReLU(inplace=True)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
@@ -160,7 +159,7 @@ def pt_resnet18(name=None, created_time=None, pretrained=False, **kwargs):
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = ResNet(BasicBlock, [2, 2, 2, 2], **kwargs, name=name, created_time=created_time,)
+    model = ResNet(BasicBlock, [2, 2, 2, 2], **kwargs, name=name, created_time=created_time)
     if pretrained:
         model.load_state_dict(model_zoo.load_url(model_urls['resnet18']))
     return model
@@ -172,7 +171,7 @@ def pt_resnet34(name=None, created_time=None, pretrained=False, **kwargs):
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = ResNet(BasicBlock, [3, 4, 6, 3], **kwargs, name=name, created_time=created_time,)
+    model = ResNet(BasicBlock, [3, 4, 6, 3], **kwargs, name=name, created_time=created_time)
     if pretrained:
         model.load_state_dict(model_zoo.load_url(model_urls['resnet34']))
     return model
@@ -184,7 +183,7 @@ def pt_resnet50(name=None, created_time=None, pretrained=False, **kwargs):
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = ResNet(Bottleneck, [3, 4, 6, 3], **kwargs, name=name, created_time=created_time,)
+    model = ResNet(Bottleneck, [3, 4, 6, 3], **kwargs, name=name, created_time=created_time)
     if pretrained:
         model.load_state_dict(model_zoo.load_url(model_urls['resnet50']))
     return model
@@ -196,7 +195,7 @@ def pt_resnet101(name=None, created_time=None, pretrained=False, **kwargs):
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = ResNet(Bottleneck, [3, 4, 23, 3], **kwargs, name=name, created_time=created_time,)
+    model = ResNet(Bottleneck, [3, 4, 23, 3], **kwargs, name=name, created_time=created_time)
     if pretrained:
         model.load_state_dict(model_zoo.load_url(model_urls['resnet101']))
     return model
