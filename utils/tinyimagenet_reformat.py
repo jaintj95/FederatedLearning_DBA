@@ -36,14 +36,6 @@ for path in paths:
     dest = target_folder + str(folder) + '/' + str(file)
     move(path, dest)
 
-# for path in paths:
-#     if platform.system() == 'Windows':
-#         file = path.split('\\')[-1]
-#     else:
-#         file = path.split('/')[-1]
-#     folder = val_dict[file]
-#     dest = target_folder + str(folder) + '/' + str(file)
-#     move(path, dest)
 
 os.remove('../data/tiny-imagenet-200/val/val_annotations.txt')
 rmdir('../data/tiny-imagenet-200/val/images')
