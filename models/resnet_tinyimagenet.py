@@ -170,7 +170,8 @@ class ResNet(SimpleNet):
                 nn.init.constant_(m.bias, 0)
 
         # Zero-initialize the last BN in each residual branch,
-        # so that the residual branch starts with zeros, and each residual block behaves like an identity.
+        # so that the residual branch starts with zeros, 
+        # and each residual block behaves like an identity.
         # This improves the model by 0.2~0.3% according to https://arxiv.org/abs/1706.02677
         if zero_init_residual:
             for m in self.modules():
@@ -193,10 +194,8 @@ class ResNet(SimpleNet):
             self.dilation *= stride
             stride = 1
         if stride != 1 or self.inplanes != planes * block.expansion:
-            downsample = nn.Sequential(
-                conv1x1(self.inplanes, planes * block.expansion, stride),
-                norm_layer(planes * block.expansion),
-            )
+            downsample = nn.Sequential(conv1x1(self.inplanes, planes * block.expansion, stride),
+                                        norm_layer(planes * block.expansion),)
 
         layers = []
         layers.append(block(self.inplanes, planes, stride, downsample, self.groups,
@@ -234,15 +233,15 @@ def _resnet(arch, block, layers, pretrained, progress,name, create_time, **kwarg
     return model
 
 
-def resnet18(pretrained=False, progress=True,name=None, created_time=None,  **kwargs):
+def resnet18(pretrained=False, progress=True,name=None, created_time=None, **kwargs):
     """Constructs a ResNet-18 model.
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
         progress (bool): If True, displays a progress bar of the download to stderr
     """
-    return _resnet('resnet18', BasicBlock, [2, 2, 2, 2], pretrained, progress,'{0}_ResNet_18'.format(name), 
-                    created_time, **kwargs)
+    return _resnet('resnet18', BasicBlock, [2, 2, 2, 2], pretrained, progress, 
+                    '{0}_ResNet_18'.format(name), created_time, **kwargs)
 
 
 if __name__ == '__main__':
@@ -278,7 +277,7 @@ if __name__ == '__main__':
     running_datasize = 0
     # Iterate over data.
 
-    phase='val'
+    phase = 'val'
 
     vis_image = None
     criterion = nn.CrossEntropyLoss()
