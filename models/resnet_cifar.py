@@ -8,9 +8,9 @@ Reference:
 import torch
 from torch import nn
 import torch.nn.functional as F
-from models.simple import SimpleNet
 from torch.autograd import Variable
 
+from models.simple import SimpleNet
 
 class BasicBlock(nn.Module):
     expansion = 1
@@ -92,6 +92,7 @@ class ResNet(SimpleNet):
         out = self.layer2(out)
         out = self.layer3(out)
         out = self.layer4(out)
+
         out = F.avg_pool2d(out, 4)
         out = out.view(out.size(0), -1)
         out = self.linear(out)
@@ -102,19 +103,19 @@ class ResNet(SimpleNet):
 
 
 def ResNet18(name=None, created_time=None):
-    return ResNet(BasicBlock, [2,2,2,2],name='{0}_ResNet_18'.format(name), created_time=created_time)
+    return ResNet(BasicBlock, [2,2,2,2], name='{0}_ResNet_18'.format(name), created_time=created_time)
 
 def ResNet34(name=None, created_time=None):
-    return ResNet(BasicBlock, [3,4,6,3],name='{0}_ResNet_34'.format(name), created_time=created_time)
+    return ResNet(BasicBlock, [3,4,6,3], name='{0}_ResNet_34'.format(name), created_time=created_time)
 
 def ResNet50(name=None, created_time=None):
-    return ResNet(Bottleneck, [3,4,6,3],name='{0}_ResNet_50'.format(name), created_time=created_time)
+    return ResNet(Bottleneck, [3,4,6,3], name='{0}_ResNet_50'.format(name), created_time=created_time)
 
 def ResNet101(name=None, created_time=None):
-    return ResNet(Bottleneck, [3,4,23,3],name='{0}_ResNet'.format(name), created_time=created_time)
+    return ResNet(Bottleneck, [3,4,23,3], name='{0}_ResNet'.format(name), created_time=created_time)
 
 def ResNet152(name=None, created_time=None):
-    return ResNet(Bottleneck, [3,8,36,3],name='{0}_ResNet'.format(name), created_time=created_time)
+    return ResNet(Bottleneck, [3,8,36,3], name='{0}_ResNet'.format(name), created_time=created_time)
 
 
 if __name__ == '__main__':
@@ -122,5 +123,6 @@ if __name__ == '__main__':
     net = ResNet18()
 
     # Variable has been deprecated. Fix this
-    y = net(Variable(torch.randn(1,3,32,32)))
+    # y = net(Variable(torch.randn(1,3,32,32)))
+    y = net((torch.randn((1,3,32,32), requires_grad=True)))
     print(y.size())

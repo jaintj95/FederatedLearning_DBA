@@ -42,6 +42,7 @@ class BasicBlock(nn.Module):
     def __init__(self, inplanes, planes, stride=1, downsample=None, groups=1,
                  base_width=64, dilation=1, norm_layer=None):
         super(BasicBlock, self).__init__()
+        
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
         if groups != 1 or base_width != 64:
@@ -82,8 +83,10 @@ class Bottleneck(nn.Module):
     def __init__(self, inplanes, planes, stride=1, downsample=None, groups=1,
                  base_width=64, dilation=1, norm_layer=None):
         super(Bottleneck, self).__init__()
+
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
+        
         width = int(planes * (base_width / 64.)) * groups
         # Both self.conv2 and self.downsample layers downsample the input when stride != 1
         self.conv1 = conv1x1(inplanes, width)
@@ -120,29 +123,34 @@ class Bottleneck(nn.Module):
 
 class ResNet(SimpleNet):
 
-    def __init__(self, block, layers,name=None, created_time=None, num_classes=1000, zero_init_residual=False,
-                 groups=1, width_per_group=64, replace_stride_with_dilation=None,
-                 norm_layer=None):
+    def __init__(self, block, layers,name=None, created_time=None, num_classes=1000, 
+                zero_init_residual=False, groups=1, width_per_group=64, 
+                replace_stride_with_dilation=None, norm_layer=None):
         super(ResNet, self).__init__(name, created_time)
+
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
         self._norm_layer = norm_layer
 
         self.inplanes = 64
         self.dilation = 1
+
         if replace_stride_with_dilation is None:
             # each element in the tuple indicates if we should replace
             # the 2x2 stride with a dilated convolution instead
             replace_stride_with_dilation = [False, False, False]
+
         if len(replace_stride_with_dilation) != 3:
             raise ValueError("replace_stride_with_dilation should be None "
                              "or a 3-element tuple, got {}".format(replace_stride_with_dilation))
+        
         self.groups = groups
         self.base_width = width_per_group
         self.conv1 = nn.Conv2d(3, self.inplanes, kernel_size=7, stride=2, padding=3, bias=False)
         self.bn1 = norm_layer(self.inplanes)
         self.relu = nn.ReLU(inplace=True)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+        
         self.layer1 = self._make_layer(block, 64, layers[0])
         self.layer2 = self._make_layer(block, 128, layers[1], stride=2,
                                        dilate=replace_stride_with_dilation[0])
@@ -150,6 +158,7 @@ class ResNet(SimpleNet):
                                        dilate=replace_stride_with_dilation[1])
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2,
                                        dilate=replace_stride_with_dilation[2])
+        
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Linear(512 * block.expansion, num_classes)
 
@@ -161,7 +170,8 @@ class ResNet(SimpleNet):
                 nn.init.constant_(m.bias, 0)
 
         # Zero-initialize the last BN in each residual branch,
-        # so that the residual branch starts with zeros, and each residual block behaves like an identity.
+        # so that the residual branch starts with zeros, 
+        # and each residual block behaves like an identity.
         # This improves the model by 0.2~0.3% according to https://arxiv.org/abs/1706.02677
         if zero_init_residual:
             for m in self.modules():
@@ -184,10 +194,8 @@ class ResNet(SimpleNet):
             self.dilation *= stride
             stride = 1
         if stride != 1 or self.inplanes != planes * block.expansion:
-            downsample = nn.Sequential(
-                conv1x1(self.inplanes, planes * block.expansion, stride),
-                norm_layer(planes * block.expansion),
-            )
+            downsample = nn.Sequential(conv1x1(self.inplanes, planes * block.expansion, stride),
+                                        norm_layer(planes * block.expansion),)
 
         layers = []
         layers.append(block(self.inplanes, planes, stride, downsample, self.groups,
@@ -225,21 +233,21 @@ def _resnet(arch, block, layers, pretrained, progress,name, create_time, **kwarg
     return model
 
 
-def resnet18(pretrained=False, progress=True,name=None, created_time=None,  **kwargs):
+def resnet18(pretrained=False, progress=True,name=None, created_time=None, **kwargs):
     """Constructs a ResNet-18 model.
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
         progress (bool): If True, displays a progress bar of the download to stderr
     """
-    return _resnet('resnet18', BasicBlock, [2, 2, 2, 2], pretrained, progress,'{0}_ResNet_18'.format(name), created_time,
-                   **kwargs)
+    return _resnet('resnet18', BasicBlock, [2, 2, 2, 2], pretrained, progress, 
+                    '{0}_ResNet_18'.format(name), created_time, **kwargs)
 
 
 if __name__ == '__main__':
 
-    from torchvision import datasets, transforms
     import os
+    from torchvision import datasets, transforms
     from torch.utils.data import DataLoader
 
     # Data loading code
@@ -257,28 +265,24 @@ if __name__ == '__main__':
 
     data_dir = '../data/tiny-imagenet-200/'
 
-    image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x),
-                                              data_transforms[x])
+    image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x])
                       for x in ['train', 'val']}
     dataloaders = {x: DataLoader(image_datasets[x], batch_size=100, num_workers=64) for x in ['train', 'val']}
     dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
 
-    target_model = resnet18(name='Target',
-                            created_time='')
+    target_model = resnet18(name='Target', created_time='')
 
     running_loss = 0.0
     running_corrects = 0
     running_datasize = 0
     # Iterate over data.
 
-    phase='val'
+    phase = 'val'
 
-    vis_image=None
+    vis_image = None
     criterion = nn.CrossEntropyLoss()
     for i, (inputs, labels) in enumerate(dataloaders[phase]):
-
-        output= target_model(inputs)
-
+        output = target_model(inputs)
         break
 
 
