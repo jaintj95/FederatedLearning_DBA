@@ -3,6 +3,8 @@
 __pycache__
 models/__pycache__
 utils/__pycache__
+utils/lending-club-loan-data
+utils/lending-club-loan-data.zip
 utils/tiny-imagenet-200
 utils/tiny-imagenet-200.zip
 data
