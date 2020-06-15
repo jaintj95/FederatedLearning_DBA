@@ -35,7 +35,7 @@ adversary_list: [0, 3, 5, 9, 10, 12, 15, 18, 20, 24, 25, 30, 33, 36, 37, 42, 44,
 #adversary_list: [17]
 
 centralized_test_trigger: true
-trigger_num: 4
+trigger_num: 32
 
 ### gap 2 size 2*10 base 0
 0_poison_pattern: [[0, 0], [1, 0], [0, 1], [1, 1]]
