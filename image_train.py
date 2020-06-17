@@ -14,7 +14,7 @@ import utils.csv_record as csv_record
 
 def ImageTrain(helper, start_epoch, local_model, target_model, is_poison, agent_name_keys):
 
-    epochs_submit_update_dict = dict()
+    epochs_submit_upd_dict = dict()
     num_samples_dict = dict()
     current_number_of_adversaries = 0
     for temp_name in agent_name_keys:
@@ -22,7 +22,7 @@ def ImageTrain(helper, start_epoch, local_model, target_model, is_poison, agent_
             current_number_of_adversaries += 1
 
     for model_id in range(helper.params['no_models']):
-        epochs_local_update_list = []
+        epochs_local_upd_list = []
         last_local_model = dict()
         client_grad = []  # only works for aggr_epoch_interval=1
 
@@ -72,16 +72,16 @@ def ImageTrain(helper, start_epoch, local_model, target_model, is_poison, agent_
                     poison_data_count = 0
                     total_loss = 0.
                     correct = 0
-                    dataset_size = 0
+                    data_size = 0
                     dis2global_list=[]
                     for batch_id, batch in enumerate(data_iterator):
                         data, targets, poison_num = helper.get_poison_batch(batch, adversarial_idx=adversarial_index, eval=False)
                         poison_optimizer.zero_grad()
-                        dataset_size += len(data)
+                        data_size += len(data)
                         poison_data_count += poison_num
 
                         output = model(data)
-                        class_loss = nn.functional.cross_entropy(output, targets)
+                        class_loss = F.cross_entropy(output, targets)
 
                         distance_loss = helper.model_dist_norm_var(model, target_params_variables)
                         # Lmodel = αLclass + (1 − α)Lano; alpha_loss =1 fixed
@@ -105,34 +105,29 @@ def ImageTrain(helper, start_epoch, local_model, target_model, is_poison, agent_
                         if helper.params["batch_track_distance"]:
                             # we can calculate distance to this model now.
                             temp_data_len = len(data_iterator)
-                            distance_to_global_model = helper.model_dist_norm(model, target_params_variables)
-                            dis2global_list.append(distance_to_global_model)
-                            model.track_distance_batch_vis(vis=main.vis, epoch=temp_local_epoch,
-                                                           data_len=temp_data_len, batch=batch_id,
-                                                           distance_to_global_model=distance_to_global_model,
+                            distance = helper.model_dist_norm(model, target_params_variables)
+                            dis2global_list.append(distance)
+                            model.track_distance_batch_vis(main.vis, temp_local_epoch, data_len=temp_data_len, 
+                                                           batch=batch_id, distance_to_global_model=distance,
                                                            eid=helper.params['environment_name'],
-                                                           name=str(agent_name_key),is_poisoned=True)
+                                                           name=str(agent_name_key), is_poisoned=True)
 
                     if step_lr:
                         scheduler.step()
                         main.logger.info(f'Current lr: {scheduler.get_lr()}')
 
-                    acc = 100.0 * (float(correct) / float(dataset_size))
-                    total_l = total_loss / dataset_size
-                    main.logger.info(
-                        '___PoisonTrain {}, epoch {:3d}, local model {}, internal_epoch {:3d}, Average loss: {:.4f}, '
+                    acc = 100.0 * (float(correct) / float(data_size))
+                    total_l = total_loss / data_size
+                    main.logger.info('_PoisonTrain {}, epoch {:3d}, local model {}, internal_epoch {:3d}, Avg loss: {:.4f}, '
                         'Accuracy: {}/{} ({:.4f}%), train_poison_data_count: {}'.format(model.name, epoch, agent_name_key,
-                                                                                      internal_epoch,
-                                                                                      total_l, correct, dataset_size,
-                                                                                     acc, poison_data_count))
-                    csv_record.train_result.append(
-                        [agent_name_key, temp_local_epoch,
-                         epoch, internal_epoch, total_l.item(), acc, correct, dataset_size])
+                                                                                       internal_epoch, total_l, correct, 
+                                                                                       data_size, acc, poison_data_count))
+                    csv_record.train_result.append([agent_name_key, temp_local_epoch,
+                         epoch, internal_epoch, total_l.item(), acc, correct, data_size])
                     if helper.params['vis_train']:
                         model.train_vis(main.vis, temp_local_epoch, acc, loss=total_l,
-                                        eid=helper.params['environment_name'], is_poisoned=True,
-                                        name=str(agent_name_key) )
-                    num_samples_dict[agent_name_key] = dataset_size
+                                        eid=helper.params['environment_name'], is_poisoned=True, name=str(agent_name_key))
+                    num_samples_dict[agent_name_key] = data_size
                     if helper.params["batch_track_distance"]:
                         main.logger.info(
                             f'MODEL {model_id}. P-norm is {helper.model_global_norm(model):.4f}. '
@@ -145,17 +140,13 @@ def ImageTrain(helper, start_epoch, local_model, target_model, is_poison, agent_
 
                 if not helper.params['baseline']:
                     main.logger.info(f'will scale.')
-                    epoch_loss, epoch_acc, epoch_corret, epoch_total = test.Mytest(helper=helper, epoch=epoch,
-                                                                                   model=model, is_poison=False,
-                                                                                   visualize=False,
-                                                                                   agent_name_key=agent_name_key)
-                    csv_record.test_result.append([agent_name_key, epoch, epoch_loss, epoch_acc, epoch_corret, epoch_total])
+                    e_loss, e_acc, e_correct, e_total = test.Mytest(helper, epoch, model, is_poison=False,
+                                                                    visualize=False, agent_name_key=agent_name_key)
+                    csv_record.test_result.append([agent_name_key, epoch, e_loss, e_acc, e_correct, e_total])
 
-                    epoch_loss, epoch_acc, epoch_corret, epoch_total = test.Mytest_poison(helper=helper, epoch=epoch,
-                                                                                          model=model, is_poison=True,
-                                                                                          visualize=False,
-                                                                                          agent_name_key=agent_name_key)
-                    csv_record.posiontest_result.append([agent_name_key, epoch, epoch_loss, epoch_acc, epoch_corret, epoch_total])
+                    e_loss, e_acc, e_correct, e_total = test.Mytest_poison(helper, epoch, model, is_poison=True,
+                                                                           visualize=False, agent_name_key=agent_name_key)
+                    csv_record.posiontest_result.append([agent_name_key, epoch, e_loss, e_acc, e_correct, e_total])
 
                     clip_rate = helper.params['scale_weights_poison']
                     main.logger.info(f"Scaling by  {clip_rate}")
@@ -173,7 +164,7 @@ def ImageTrain(helper, start_epoch, local_model, target_model, is_poison, agent_
 
                     if helper.params["batch_track_distance"]:
                         temp_data_len = len(helper.train_data[agent_name_key][1])
-                        model.track_distance_batch_vis(vis=main.vis, epoch=temp_local_epoch, data_len=temp_data_len,
+                        model.track_distance_batch_vis(main.vis, temp_local_epoch, data_len=temp_data_len,
                                                        batch=temp_data_len-1, distance_to_global_model=distance,
                                                        eid=helper.params['environment_name'],
                                                        name=str(agent_name_key), is_poisoned=True)
@@ -190,16 +181,16 @@ def ImageTrain(helper, start_epoch, local_model, target_model, is_poison, agent_
                     _, data_iterator = helper.train_data[agent_name_key]
                     total_loss = 0.
                     correct = 0
-                    dataset_size = 0
+                    data_size = 0
                     dis2global_list = []
                     for batch_id, batch in enumerate(data_iterator):
 
                         optimizer.zero_grad()
                         data, targets = helper.get_batch(data_iterator, batch, eval=False)
 
-                        dataset_size += len(data)
+                        data_size += len(data)
                         output = model(data)
-                        loss = nn.functional.cross_entropy(output, targets)
+                        loss = F.cross_entropy(output, targets)
                         loss.backward()
 
                         # get gradients
@@ -219,84 +210,78 @@ def ImageTrain(helper, start_epoch, local_model, target_model, is_poison, agent_
                         if helper.params["vis_train_batch_loss"]:
                             cur_loss = loss.data
                             temp_data_len = len(data_iterator)
-                            model.train_batch_vis(vis=main.vis, epoch=temp_local_epoch, data_len=temp_data_len,
+                            model.train_batch_vis(main.vis, temp_local_epoch, data_len=temp_data_len,
                                                   batch=batch_id, loss=cur_loss, eid=helper.params['environment_name'],
                                                   name=str(agent_name_key), win='train_batch_loss', is_poisoned=False)
 
                         if helper.params["batch_track_distance"]:
                             # we can calculate distance to this model now
                             temp_data_len = len(data_iterator)
-                            distance_to_global_model = helper.model_dist_norm(model, target_params_variables)
-                            dis2global_list.append(distance_to_global_model)
-                            model.track_distance_batch_vis(vis=main.vis, epoch=temp_local_epoch,
-                                                           data_len=temp_data_len, batch=batch_id,
-                                                           distance_to_global_model = distance_to_global_model,
+                            distance = helper.model_dist_norm(model, target_params_variables)
+                            dis2global_list.append(distance)
+                            model.track_distance_batch_vis(main.vis, temp_local_epoch, data_len=temp_data_len, 
+                                                           batch=batch_id, distance_to_global_model=distance,
                                                            eid=helper.params['environment_name'],
-                                                           name=str(agent_name_key),is_poisoned=False)
+                                                           name=str(agent_name_key), is_poisoned=False)
 
-                    acc = 100.0 * (float(correct) / float(dataset_size))
-                    total_l = total_loss / dataset_size
-                    main.logger.info(
-                        '___Train {}, epoch {:3d}, local model {}, internal_epoch {:3d}, Avg loss: {:.4f}, '
-                        'Accuracy: {}/{} ({:.4f}%)'.format(model.name, epoch, agent_name_key, internal_epoch,
-                                                           total_l, correct, dataset_size, acc))
+                    acc = 100.0 * (float(correct) / float(data_size))
+                    total_l = total_loss / data_size
+                    main.logger.info('_Train {}, epoch {:3d}, local model {}, internal_epoch {:3d}, Avg loss: {:.4f}, '
+                                     'Accuracy: {}/{} ({:.4f}%)'.format(model.name, epoch, agent_name_key, 
+                                                        internal_epoch, total_l, correct, data_size, acc))
                     csv_record.train_result.append([agent_name_key, temp_local_epoch, epoch, internal_epoch,
-                                                    total_l.item(), acc, correct, dataset_size])
+                                                    total_l.item(), acc, correct, data_size])
 
                     if helper.params['vis_train']:
                         model.train_vis(main.vis, temp_local_epoch, acc, loss=total_l,
                                         eid=helper.params['environment_name'], is_poisoned=False,
                                         name=str(agent_name_key))
 
-                    num_samples_dict[agent_name_key] = dataset_size
+                    num_samples_dict[agent_name_key] = data_size
 
                     if helper.params["batch_track_distance"]:
                         main.logger.info(f'MODEL {model_id}. P-norm is {helper.model_global_norm(model):.4f}. '
                                          f'Distance to the global model: {dis2global_list}. ')
 
                 # test local model after internal epoch finishing
-                epoch_loss, epoch_acc, epoch_corret, epoch_total = test.Mytest(helper=helper, epoch=epoch, model=model,
-                                                                               is_poison=False, visualize=True,
-                                                                               agent_name_key=agent_name_key)
-                csv_record.test_result.append([agent_name_key, epoch, epoch_loss, epoch_acc, epoch_corret, epoch_total])
+                e_loss, e_acc, e_correct, e_total = test.Mytest(helper, epoch, model, is_poison=False, 
+                                                                visualize=True, agent_name_key=agent_name_key)
+                csv_record.test_result.append([agent_name_key, epoch, e_loss, e_acc, e_correct, e_total])
 
             if is_poison:
                 if agent_name_key in helper.params['adversary_list'] and (epoch in localmodel_poison_epochs):
-                    epoch_loss, epoch_acc, epoch_corret, epoch_total = test.Mytest_poison(helper=helper, epoch=epoch,
-                                                                                          model=model, is_poison=True,
-                                                                                          visualize=True,
-                                                                                          agent_name_key=agent_name_key)
-                    csv_record.posiontest_result.append([agent_name_key, epoch, epoch_loss, epoch_acc, epoch_corret, epoch_total])
+                    e_loss, e_acc, e_correct, e_total = test.Mytest_poison(helper, epoch, model, is_poison=True,
+                                                                           visualize=True, agent_name_key=agent_name_key)
+                    csv_record.posiontest_result.append([agent_name_key, epoch, e_loss, e_acc, e_correct, e_total])
 
                 #  test on local triggers
                 if agent_name_key in helper.params['adversary_list']:
                     if helper.params['vis_trigger_split_test']:
-                        model.trigger_agent_test_vis(vis=main.vis, epoch=epoch, acc=epoch_acc, loss=None,
+                        model.trigger_agent_test_vis(main.vis, epoch, acc=e_acc, loss=None,
                                                      eid=helper.params['environment_name'],
                                                      name=str(agent_name_key)  + "_combine")
 
-                    epoch_loss, epoch_acc, epoch_corret, epoch_total = \
-                        test.Mytest_poison_agent_trigger(helper=helper, model=model, agent_name_key=agent_name_key)
-                    csv_record.poisontriggertest_result.append(
-                        [agent_name_key, str(agent_name_key) + "_trigger", "", epoch, epoch_loss,
-                         epoch_acc, epoch_corret, epoch_total])
+                    e_loss, e_acc, e_correct, e_total = test.Mytest_poison_agent_trigger(helper, model, 
+                                                                                         agent_name_key=agent_name_key)
+                    csv_record.poisontriggertest_result.append([agent_name_key, str(agent_name_key) + "_trigger", "", 
+                                                                epoch, e_loss, e_acc, e_correct, e_total])
                     if helper.params['vis_trigger_split_test']:
-                        model.trigger_agent_test_vis(vis=main.vis, epoch=epoch, acc=epoch_acc, loss=None,
+                        model.trigger_agent_test_vis(main.vis, epoch, acc=e_acc, loss=None,
                                                      eid=helper.params['environment_name'],
                                                      name=str(agent_name_key) + "_trigger")
 
             # update the model weight
-            local_model_update_dict = dict()
+            local_model_upd_dict = dict()
             for name, data in model.state_dict().items():
-                local_model_update_dict[name] = torch.zeros_like(data)
-                local_model_update_dict[name] = (data - last_local_model[name])
+                local_model_upd_dict[name] = torch.zeros(data)
+                local_model_upd_dict[name] = (data - last_local_model[name])
                 last_local_model[name] = copy.deepcopy(data)
 
             if helper.params['aggregation_methods'] == config.AGGR_FOOLSGOLD:
-                epochs_local_update_list.append(client_grad)
+                epochs_local_upd_list.append(client_grad)
             else:
-                epochs_local_update_list.append(local_model_update_dict)
+                epochs_local_upd_list.append(local_model_upd_dict)
 
-        epochs_submit_update_dict[agent_name_key] = epochs_local_update_list
+        epochs_submit_upd_dict[agent_name_key] = epochs_local_upd_list
 
-    return epochs_submit_update_dict, num_samples_dict
+    return epochs_submit_upd_dict, num_samples_dict
