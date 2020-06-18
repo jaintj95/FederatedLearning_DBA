@@ -9,7 +9,6 @@ import sklearn.metrics.pairwise as smp
 
 import torch
 from torch.autograd import Variable
-from torch.nn.functional import log_softmax
 import torch.nn.functional as F
 
 import config
@@ -495,7 +494,7 @@ class Helper:
                 loss = criterion(output.view(-1, self.n_tokens), targets)
             else:
                 output = model(data)
-                loss = log_softmax(output, dim=1)[range(targets.shape[0]), targets.data]
+                loss = F.log_softmax(output, dim=1)[range(targets.shape[0]), targets.data]
                 # loss = criterion(output.view(-1, ntokens
             # output, hidden = model(data, hidden)
             loglikelihoods.append(loss)
