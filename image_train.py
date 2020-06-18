@@ -146,7 +146,7 @@ def ImageTrain(helper, start_epoch, local_model, target_model, is_poison, agent_
 
                     e_loss, e_acc, e_correct, e_total = test.Mytest_poison(helper, epoch, model, is_poison=True,
                                                                            visualize=False, agent_name_key=agent_name_key)
-                    csv_record.posiontest_result.append([agent_name_key, epoch, e_loss, e_acc, e_correct, e_total])
+                    csv_record.poisontest_result.append([agent_name_key, epoch, e_loss, e_acc, e_correct, e_total])
 
                     clip_rate = helper.params['scale_weights_poison']
                     main.logger.info(f"Scaling by  {clip_rate}")
@@ -252,7 +252,7 @@ def ImageTrain(helper, start_epoch, local_model, target_model, is_poison, agent_
                 if agent_name_key in helper.params['adversary_list'] and (epoch in localmodel_poison_epochs):
                     e_loss, e_acc, e_correct, e_total = test.Mytest_poison(helper, epoch, model, is_poison=True,
                                                                            visualize=True, agent_name_key=agent_name_key)
-                    csv_record.posiontest_result.append([agent_name_key, epoch, e_loss, e_acc, e_correct, e_total])
+                    csv_record.poisontest_result.append([agent_name_key, epoch, e_loss, e_acc, e_correct, e_total])
 
                 #  test on local triggers
                 if agent_name_key in helper.params['adversary_list']:
@@ -273,7 +273,7 @@ def ImageTrain(helper, start_epoch, local_model, target_model, is_poison, agent_
             # update the model weight
             local_model_upd_dict = dict()
             for name, data in model.state_dict().items():
-                local_model_upd_dict[name] = torch.zeros(data)
+                local_model_upd_dict[name] = torch.zeros(data.shape)
                 local_model_upd_dict[name] = (data - last_local_model[name])
                 last_local_model[name] = copy.deepcopy(data)
 
