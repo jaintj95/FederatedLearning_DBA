@@ -1,8 +1,14 @@
-# DBA
+# Adversary's Utility in Backdoor Attacks for Federated Learning
 
-## Note - This repo was created so that I could cleanup AlphaPav's repo (https://github.com/AlphaPav/DBA) for personal use. All original work belongs to the concerned parties mentioned in the original repo. 
+## Team
 
-This repository contains the code is for ICLR 2020 paper [DBA: Distributed Backdoor Attacks against Federated Learning](https://openreview.net/forum?id=rkgyS0VFvr)
+* Research Engineer - Tejas Jain [@jaintj95](https://github.com/jaintj95)
+* Research Scientist - Anupam Mediratta [@anupamme](https://github.com/anupamme)
+
+## Note - This repo was created so that I could cleanup [AlphaPav's repo](https://github.com/AlphaPav/DBA) for personal use. All original work belongs to the concerned parties mentioned in the original repo. Please check Acknowledgement section below for details.
+
+This repository contains the code for ICLR 2020 paper [DBA: Distributed Backdoor Attacks against Federated Learning](https://openreview.net/forum?id=rkgyS0VFvr)
+___
 
 ## Installation
 
@@ -12,6 +18,7 @@ conda create --name env_name
 ```
 
 Install PyTorch and other missing packages
+___
 
 ## Usage
 
@@ -67,19 +74,28 @@ and then execute the `process_tiny_data.sh` script in utils directory
 #### Others
 
 MNIST and CIFAR will be automatically download
+___
 
 ## Run experiments
 
-- prepare the pretrained model:
+* prepare the pretrained model:
 Our pretrained clean models for attack can be downloaded from [Google Drive](https://drive.google.com/file/d/1wcJ_DkviuOLkmr-FgIVSFwnZwyGU8SjH/view?usp=sharing). You can also train from the round 0 to obtain the pretrained clean model.
 
-- we can use Visdom to monitor the training progress
+* we can use Visdom to monitor the training progress
+
+```
+python -m visdom.server
+```
+
+Note - If the default port 8097 is already in use, you can start visdom a custom port like so:
 
 ```
 python -m visdom.server -p 8098
 ```
 
-- run experiments for the four datasets
+Remember to change the port number (`VIS_PORT`) in config.py  
+  
+* run experiments for the four datasets
 
 ```
 python main.py --params utils/X.yaml
@@ -87,7 +103,7 @@ python main.py --params utils/X.yaml
 
 `X` = `mnist_params`, `cifar_params`,`tiny_params` or `loan_params`. Parameters can be changed in those yaml files to reproduce our experiments.
 
-Stay tuned for further updates, thanks!
+___
 
 ## Citation
 
@@ -104,8 +120,11 @@ url={https://openreview.net/forum?id=rkgyS0VFvr}
 }
 ```
 
+___
+
 ## Acknowledgement
 
-- [ebagdasa/backdoor_federated_learning](https://github.com/ebagdasa/backdoor_federated_learning)
-- [krishnap25/RFA](https://github.com/krishnap25/RFA)
-- [DistributedML/FoolsGold](https://github.com/DistributedML/FoolsGold)
+* [AlphaPav/DBA](https://github.com/AlphaPav/DBA)
+* [ebagdasa/backdoor_federated_learning](https://github.com/ebagdasa/backdoor_federated_learning)
+* [krishnap25/RFA](https://github.com/krishnap25/RFA)
+* [DistributedML/FoolsGold](https://github.com/DistributedML/FoolsGold)
