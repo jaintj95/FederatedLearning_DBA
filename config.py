@@ -1,6 +1,9 @@
 import torch
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-print("Device: ", device)
+print("Device: ",device)
+
+VIS_PORT = 8097
+
 AGGR_MEAN = 'mean'
 AGGR_GEO_MED = 'geom_median'
 AGGR_FOOLSGOLD = 'foolsgold'
