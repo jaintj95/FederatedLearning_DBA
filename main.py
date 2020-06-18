@@ -27,7 +27,7 @@ os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 logger = logging.getLogger("logger")
 # logger.setLevel("ERROR")
 
-vis = visdom.Visdom(port=8098)
+vis = visdom.Visdom(port=config.VIS_PORT)
 criterion = nn.CrossEntropyLoss()
 
 # What's up with so many seeds?
@@ -37,30 +37,27 @@ random.seed(1)
 
 
 def trigger_test_byindex(helper, index, vis, epoch):
-    epoch_loss, epoch_acc, epoch_corret, epoch_total = \
-        test.Mytest_poison_trigger(helper=helper, model=helper.target_model,
-                                   adver_trigger_index=index)
+    e_loss, e_acc, e_correct, e_total = test.Mytest_poison_trigger(helper, model=helper.target_model, 
+                                                                   adver_trigger_index=index)
 
-    csv_record.poisontriggertest_result.append(
-        ['global', "global_in_index_" + str(index) + "_trigger", "", epoch,
-         epoch_loss, epoch_acc, epoch_corret, epoch_total])
+    csv_record.poisontriggertest_result.append(['global', "global_in_index_" + str(index) + "_trigger", "", epoch,
+                                                e_loss, e_acc, e_correct, e_total])
 
     if helper.params['vis_trigger_split_test']:
-        helper.target_model.trigger_agent_test_vis(vis=vis, epoch=epoch, acc=epoch_acc, loss=None,
+        helper.target_model.trigger_agent_test_vis(vis=vis, epoch=epoch, acc=e_acc, loss=None,
                                                    eid=helper.params['environment_name'],
                                                    name="global_in_index_" + str(index) + "_trigger")
 
 
 def trigger_test_byname(helper, agent_name_key, vis, epoch):
-    epoch_loss, epoch_acc, epoch_corret, epoch_total = \
-        test.Mytest_poison_agent_trigger(helper=helper, model=helper.target_model, agent_name_key=agent_name_key)
+    e_loss, e_acc, e_correct, e_total = test.Mytest_poison_agent_trigger(helper, model=helper.target_model, 
+                                                                         agent_name_key=agent_name_key)
 
-    csv_record.poisontriggertest_result.append(
-        ['global', "global_in_" + str(agent_name_key) + "_trigger", "", epoch,
-         epoch_loss, epoch_acc, epoch_corret, epoch_total])
+    csv_record.poisontriggertest_result.append(['global', "global_in_" + str(agent_name_key) + "_trigger", "", epoch,
+                                                e_loss, e_acc, e_correct, e_total])
 
     if helper.params['vis_trigger_split_test']:
-        helper.target_model.trigger_agent_test_vis(vis=vis, epoch=epoch, acc=epoch_acc, loss=None,
+        helper.target_model.trigger_agent_test_vis(vis=vis, epoch=epoch, acc=e_acc, loss=None,
                                                    eid=helper.params['environment_name'],
                                                    name="global_in_" + str(agent_name_key) + "_trigger")
 
@@ -80,6 +77,7 @@ def vis_agg_weight(helper, names, weights, epoch, vis, adversarial_name_keys):
 
         if _name in adversarial_name_keys:
             _is_poison = True
+
         helper.target_model.weight_vis(vis=vis, epoch=epoch, weight=_weight, eid=helper.params['environment_name'],
                                        name=_name, is_poisoned=_is_poison)
 
@@ -99,6 +97,7 @@ def vis_fg_alpha(helper, names, alphas, epoch, vis, adversarial_name_keys):
 
         if _name in adversarial_name_keys:
             _is_poison = True
+
         helper.target_model.alpha_vis(vis=vis, epoch=epoch, alpha=_alpha, eid=helper.params['environment_name'],
                                       name=_name, is_poisoned=_is_poison)
 
@@ -204,7 +203,7 @@ if __name__ == '__main__':
             if helper.params['is_random_adversary'] == False:
                 adversarial_name_keys = copy.deepcopy(helper.params['adversary_list'])
         logger.info(f'Server Epoch:{epoch} choose agents : {agent_name_keys}.')
-        epochs_submit_update_dict, num_samples_dict = train.train(helper=helper, start_epoch=epoch,
+        epochs_submit_update_dict, num_samples_dict = train.train(helper, start_epoch=epoch,
                                                                   local_model=helper.local_model,
                                                                   target_model=helper.target_model,
                                                                   is_poison=helper.params['is_poison'],
@@ -238,32 +237,30 @@ if __name__ == '__main__':
 
         temp_global_epoch = epoch + helper.params['aggr_epoch_interval'] - 1
 
-        epoch_loss, epoch_acc, epoch_corret, epoch_total = test.Mytest(helper=helper, epoch=temp_global_epoch,
-                                                                       model=helper.target_model, is_poison=False,
-                                                                       visualize=True, agent_name_key="global")
-        csv_record.test_result.append(["global", temp_global_epoch, epoch_loss, epoch_acc, epoch_corret, epoch_total])
+        e_loss, e_acc, e_correct, e_total = test.Mytest(helper, temp_global_epoch, helper.target_model, 
+                                                        is_poison=False, visualize=True, agent_name_key="global")
+        
+        csv_record.test_result.append(["global", temp_global_epoch, e_loss, e_acc, e_correct, e_total])
+        
         if len(csv_record.scale_temp_one_row) > 0:
-            csv_record.scale_temp_one_row.append(round(epoch_acc, 4))
+            csv_record.scale_temp_one_row.append(round(e_acc, 4))
 
         if helper.params['is_poison']:
 
-            epoch_loss, epoch_acc_p, epoch_corret, epoch_total = test.Mytest_poison(helper=helper,
-                                                                                    epoch=temp_global_epoch,
-                                                                                    model=helper.target_model,
-                                                                                    is_poison=True,
-                                                                                    visualize=True,
-                                                                                    agent_name_key="global")
+            e_loss, e_acc_p, e_correct, e_total = test.Mytest_poison(helper, temp_global_epoch, helper.target_model,
+                                                                     is_poison=True, visualize=True, agent_name_key="global")
 
-            csv_record.posiontest_result.append(
-                ["global", temp_global_epoch, epoch_loss, epoch_acc_p, epoch_corret, epoch_total])
+            csv_record.poisontest_result.append(["global", temp_global_epoch, e_loss, e_acc_p, e_correct, e_total])
 
             # test on local triggers
-            csv_record.poisontriggertest_result.append(
-                ["global", "combine", "", temp_global_epoch, epoch_loss, epoch_acc_p, epoch_corret, epoch_total])
+            csv_record.poisontriggertest_result.append(["global", "combine", "", temp_global_epoch, e_loss, 
+                                                        e_acc_p, e_correct, e_total])
+
             if helper.params['vis_trigger_split_test']:
-                helper.target_model.trigger_agent_test_vis(vis=vis, epoch=epoch, acc=epoch_acc_p, loss=None,
+                helper.target_model.trigger_agent_test_vis(vis=vis, epoch=epoch, acc=e_acc_p, loss=None,
                                                            eid=helper.params['environment_name'],
                                                            name="global_combine")
+
             if len(helper.params['adversary_list']) == 1:  # centralized attack
                 if helper.params['centralized_test_trigger'] == True:  # centralized attack test on local triggers
                     for j in range(0, helper.params['trigger_num']):
@@ -272,7 +269,7 @@ if __name__ == '__main__':
                 for agent_name_key in helper.params['adversary_list']:
                     trigger_test_byname(helper, agent_name_key, vis, epoch)
 
-        helper.save_model(epoch=epoch, val_loss=epoch_loss)
+        helper.save_model(epoch=epoch, val_loss=e_loss)
         logger.info(f'Done in {time.time() - start_time} sec.')
         csv_record.save_result_csv(epoch, helper.params['is_poison'], helper.folder_path)
 
