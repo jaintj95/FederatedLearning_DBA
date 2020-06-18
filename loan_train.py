@@ -225,7 +225,7 @@ def LoanTrain(helper, start_epoch, local_model, target_model, is_poison, state_k
                 if state_key in helper.params['adversary_list'] and (epoch in localmodel_poison_epochs):
                     e_loss, e_acc, e_correct, e_total = test.Mytest_poison(helper, epoch, model, is_poison=True,
                                                                            visualize=True, agent_name_key=state_key)
-                    csv_record.posiontest_result.append([state_key, epoch, e_loss, e_acc, e_correct, e_total])
+                    csv_record.poisontest_result.append([state_key, epoch, e_loss, e_acc, e_correct, e_total])
 
                 #  test on local triggers
                 if  state_key in helper.params['adversary_list']:
@@ -245,7 +245,7 @@ def LoanTrain(helper, start_epoch, local_model, target_model, is_poison, state_k
             # update the weight and bias
             local_model_update_dict = dict()
             for name, data in model.state_dict().items():
-                local_model_update_dict[name] = torch.zeros(data)
+                local_model_update_dict[name] = torch.zeros(data.shape)
                 local_model_update_dict[name] = (data - last_params_vars[name])
                 last_params_vars[name] = copy.deepcopy(data)
 
