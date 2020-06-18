@@ -111,7 +111,7 @@ if __name__ == '__main__':
     time_start_load_everything = time.time()
 
     parser = argparse.ArgumentParser(description='PPDL')
-    parser.add_argument('--params', dest='params')
+    parser.add_argument('-p', '--params', dest='params')
     args = parser.parse_args()
     with open(f'./{args.params}', 'r') as f:
         params_loaded = yaml.load(f)

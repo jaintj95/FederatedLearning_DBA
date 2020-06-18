@@ -98,6 +98,12 @@ Remember to change the port number (`VIS_PORT`) in config.py
 * run experiments for the four datasets
 
 ```
+python main.py -p utils/X.yaml
+```
+
+or
+
+```
 python main.py --params utils/X.yaml
 ```
 
