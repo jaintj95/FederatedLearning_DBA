@@ -10,3 +10,5 @@ utils/tiny-imagenet-200.zip
 data
 saved_models
 test
+stats/*/*.pt
+stats/*/*.pt*
