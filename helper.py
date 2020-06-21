@@ -8,6 +8,7 @@ import numpy as np
 import sklearn.metrics.pairwise as smp
 
 import torch
+from torch import nn
 from torch.autograd import Variable
 import torch.nn.functional as F
 
@@ -15,7 +16,9 @@ import config
 import utils.csv_record
 
 import logging
+
 logger = logging.getLogger("logger")
+
 
 class Helper:
     def __init__(self, current_time, params, name):
@@ -29,25 +32,24 @@ class Helper:
         self.params = params
         self.name = name
         self.best_loss = math.inf
-        
+
         self.folder_path = f'saved_models/model_{self.name}_{current_time}'
         try:
             os.makedirs(self.folder_path)
         except FileExistsError:
             logger.info('Folder already exists')
-        
+
         logger.addHandler(logging.FileHandler(filename=f'{self.folder_path}/log.txt'))
         logger.addHandler(logging.StreamHandler())
         logger.setLevel(logging.DEBUG)
         logger.info(f'current path: {self.folder_path}')
-        
+
         if not self.params.get('environment_name', False):
             self.params['environment_name'] = self.name
 
         self.params['current_time'] = self.current_time
         self.params['folder_path'] = self.folder_path
         self.fg = FoolsGold(use_memory=self.params['fg_use_memory'])
-
 
     def save_checkpoint(self, state, is_best, filename='checkpoint.pth.tar'):
         if not self.params['save_model']:
@@ -57,14 +59,12 @@ class Helper:
         if is_best:
             copyfile(filename, 'model_best.pth.tar')
 
-
     @staticmethod
     def model_global_norm(model):
         squared_sum = 0
         for name, layer in model.named_parameters():
             squared_sum += torch.sum(torch.pow(layer.data, 2))
         return math.sqrt(squared_sum)
-
 
     @staticmethod
     def model_dist_norm(model, target_params):
@@ -73,7 +73,6 @@ class Helper:
             squared_sum += torch.sum(torch.pow(layer.data - target_params[name].data, 2))
         return math.sqrt(squared_sum)
 
-
     @staticmethod
     def model_max_values(model, target_params):
         squared_sum = list()
@@ -81,14 +80,12 @@ class Helper:
             squared_sum.append(torch.max(torch.abs(layer.data - target_params[name].data)))
         return squared_sum
 
-
     @staticmethod
     def model_max_values_var(model, target_params):
         squared_sum = list()
         for name, layer in model.named_parameters():
             squared_sum.append(torch.max(torch.abs(layer - target_params[name])))
         return sum(squared_sum)
-
 
     @staticmethod
     def get_one_vec(model, variable=False):
@@ -98,34 +95,33 @@ class Helper:
                 continue
             size += layer.view(-1).shape[0]
         if variable:
-            #sum_var = Variable(torch.cuda.FloatTensor(size).fill_(0))
+            # sum_var = Variable(torch.cuda.FloatTensor(size).fill_(0))
             sum_var = torch.zeros(size, requires_grad=True)
         else:
-            #sum_var = torch.cuda.FloatTensor(size).fill_(0)
+            # sum_var = torch.cuda.FloatTensor(size).fill_(0)
             sum_var = torch.zeros(size, requires_grad=False)
-        
+
         size = 0
         for name, layer in model.named_parameters():
             if name == 'decoder.weight':
                 continue
             if variable:
-                sum_var[size:size + layer.view(-1).shape[0]] = (layer).view(-1)
+                sum_var[size:size + layer.view(-1).shape[0]] = layer.view(-1)
             else:
-                sum_var[size:size + layer.view(-1).shape[0]] = (layer.data).view(-1)
+                sum_var[size:size + layer.view(-1).shape[0]] = layer.data.view(-1)
             size += layer.view(-1).shape[0]
 
         sum_var = sum_var.to(config.device)
         return sum_var
-
 
     @staticmethod
     def model_dist_norm_var(model, target_params_variables, norm=2):
         size = 0
         for name, layer in model.named_parameters():
             size += layer.view(-1).shape[0]
-        #sum_var = torch.FloatTensor(size).fill_(0)
+        # sum_var = torch.FloatTensor(size).fill_(0)
         sum_var = torch.zeros(size)
-        sum_var= sum_var.to(config.device)
+        sum_var = sum_var.to(config.device)
         size = 0
         for name, layer in model.named_parameters():
             sum_var[size:size + layer.view(-1).shape[0]] = (layer - target_params_variables[name]).view(-1)
@@ -133,33 +129,31 @@ class Helper:
 
         return torch.norm(sum_var, norm)
 
-
     def cos_sim_loss(self, model, target_vec):
         model_vec = self.get_one_vec(model, variable=True)
         target_var = Variable(target_vec, requires_grad=False)
-        #target_var = target_vec.requires_grad(True)
-        cs_sim = F.cosine_similarity(self.params['scale_weights'] * (model_vec-target_var) + target_var, target_var, dim=0)
+        # target_var = target_vec.requires_grad(True)
+        cs_sim = F.cosine_similarity(self.params['scale_weights'] * (model_vec - target_var) + target_var,
+                                     target_var, dim=0)
         # cs_sim = cs_loss(model_vec, target_vec)
         logger.info("loss")
         logger.info(cs_sim.data[0])
         logger.info(torch.norm(model_vec - target_var).data[0])
-        
+
         loss = 1 - cs_sim
         return 1e3 * loss
 
-
     def model_cosine_similarity(self, model, target_params_variables, model_id='attacker'):
         cs_list = list()
-        cs_loss = torch.nn.CosineSimilarity(dim=0)
+        cs_loss = nn.CosineSimilarity(dim=0)
         for name, data in model.named_parameters():
             if name == 'decoder.weight':
                 continue
 
-            model_update = 100 * (data.view(-1) - target_params_variables[name].view(-1)) + target_params_variables[
-                name].view(-1)
+            model_update = 100 * (data.view(-1) - target_params_variables[name].view(-1)) + \
+                           target_params_variables[name].view(-1)
 
-            cs = F.cosine_similarity(model_update,
-                                     target_params_variables[name].view(-1), dim=0)
+            cs = F.cosine_similarity(model_update, target_params_variables[name].view(-1), dim=0)
             # logger.info(torch.equal(layer.view(-1),
             #                          target_params_variables[name].view(-1)))
             # logger.info(name)
@@ -172,10 +166,9 @@ class Helper:
         logger.info((sum(cs_list) / len(cs_list)).data[0])
         return 1e3 * sum(cos_los_submit)
 
-
     def accum_similarity(self, last_acc, new_acc):
         cs_list = list()
-        cs_loss = torch.nn.CosineSimilarity(dim=0)
+        cs_loss = nn.CosineSimilarity(dim=0)
         # logger.info('new run')
         for name, layer in last_acc.items():
             cs = cs_loss(Variable(last_acc[name], requires_grad=False).view(-1),
@@ -191,7 +184,6 @@ class Helper:
         # logger.info((sum(cs_list)/len(cs_list)).data[0])
         return sum(cos_los_submit)
 
-
     @staticmethod
     def dp_noise(param, sigma):
         # noised_layer = torch.cuda.FloatTensor(param.shape).normal_(mean=0, std=sigma)
@@ -200,7 +192,6 @@ class Helper:
         noised_layer = noised_layer.to(config.device)
 
         return noised_layer
-
 
     def accumulate_weight(self, weight_accumulator, epochs_submit_update_dict, state_keys, num_samples_dict):
         """
@@ -212,7 +203,7 @@ class Helper:
         if self.params['aggregation_methods'] == config.AGGR_FOOLSGOLD:
             updates = dict()
             for i in range(0, len(state_keys)):
-                local_model_gradients = epochs_submit_update_dict[state_keys[i]][0] # agg 1 interval
+                local_model_gradients = epochs_submit_update_dict[state_keys[i]][0]  # agg 1 interval
                 num_samples = num_samples_dict[state_keys[i]]
                 updates[state_keys[i]] = (num_samples, copy.deepcopy(local_model_gradients))
             return None, updates
@@ -221,27 +212,26 @@ class Helper:
             updates = dict()
             for i in range(0, len(state_keys)):
                 local_model_update_list = epochs_submit_update_dict[state_keys[i]]
-                update= dict()
-                num_samples=num_samples_dict[state_keys[i]]
+                update = dict()
+                num_samples = num_samples_dict[state_keys[i]]
 
                 for name, data in local_model_update_list[0].items():
                     update[name] = torch.zeros_like(data)
 
                 for j in range(0, len(local_model_update_list)):
-                    local_model_update_dict= local_model_update_list[j]
+                    local_model_update_dict = local_model_update_list[j]
                     for name, data in local_model_update_dict.items():
                         weight_accumulator[name].add_(local_model_update_dict[name])
                         update[name].add_(local_model_update_dict[name])
-                        detached_data= data.cpu().detach().numpy()
+                        detached_data = data.cpu().detach().numpy()
                         # print(detached_data.shape)
-                        detached_data=detached_data.tolist()
+                        detached_data = detached_data.tolist()
                         # print(detached_data)
-                        local_model_update_dict[name]=detached_data # from gpu to cpu
+                        local_model_update_dict[name] = detached_data  # from gpu to cpu
 
-                updates[state_keys[i]]=(num_samples,update)
+                updates[state_keys[i]] = (num_samples, update)
 
             return weight_accumulator, updates
-
 
     def init_weight_accumulator(self, target_model):
         weight_accumulator = dict()
@@ -249,7 +239,6 @@ class Helper:
             weight_accumulator[name] = torch.zeros_like(data)
 
         return weight_accumulator
-
 
     def average_shrink_models(self, weight_accumulator, target_model, epoch_interval):
         """
@@ -296,7 +285,7 @@ class Helper:
         optimizer = torch.optim.SGD(target_model.parameters(), lr=self.params['lr'],
                                     momentum=self.params['momentum'], weight_decay=self.params['decay'])
         optimizer.zero_grad()
-        agg_grads, wv, alpha = self.fg.aggregate_gradients(client_grads,names)
+        agg_grads, wv, alpha = self.fg.aggregate_gradients(client_grads, names)
         for i, (name, params) in enumerate(target_model.named_parameters()):
             agg_grads[i] = agg_grads[i] * self.params["eta"]
             if params.requires_grad:
@@ -306,8 +295,8 @@ class Helper:
         utils.csv_record.add_weight_result(names, wv, alpha)
         return True, names, wv, alpha
 
-
-    def geometric_median_update(self, target_model, updates, maxiter=4, eps=1e-5, verbose=False, ftol=1e-6, max_upd_norm=None):
+    def geometric_median_update(self, target_model, updates, maxiter=4, eps=1e-5, verbose=False, ftol=1e-6,
+                                max_upd_norm=None):
         """
         Computes geometric median of atoms with weights alphas using Weiszfeld's Algorithm
         Args:
@@ -318,18 +307,18 @@ class Helper:
         alphas = []
         names = []
         for name, data in updates.items():
-            points.append(data[1]) # update
-            alphas.append(data[0]) # num_samples
+            points.append(data[1])  # update
+            alphas.append(data[0])  # num_samples
             names.append(name)
 
-        adver_ratio=0
-        for i in range(0,len(names)):
-            _name= names[i]
+        adver_ratio = 0
+        for i in range(0, len(names)):
+            _name = names[i]
             if _name in self.params['adversary_list']:
-                adver_ratio+= alphas[i]
-        adver_ratio= adver_ratio/ sum(alphas)
-        poison_fraction= adver_ratio* self.params['poisoning_per_batch']/ self.params['batch_size']
-        
+                adver_ratio += alphas[i]
+        adver_ratio = adver_ratio / sum(alphas)
+        poison_fraction = adver_ratio * self.params['poisoning_per_batch'] / self.params['batch_size']
+
         logger.info(f'[rfa agg] training data poison_ratio: {adver_ratio}  data num: {alphas}')
         logger.info(f'[rfa agg] considering poison per batch poison_fraction: {poison_fraction}')
 
@@ -349,13 +338,13 @@ class Helper:
             logger.info('Starting Weiszfeld algorithm')
             logger.info(log_entry)
         logger.info(f'[rfa agg] init. name: {names}, weight: {alphas}')
-        
+
         # start
         wv = None
         for i in range(maxiter):
             prev_median, prev_obj_val = median, obj_val
             weights = torch.tensor([alpha / max(eps, Helper.l2dist(median, p)) for alpha, p in zip(alphas, points)],
-                                 dtype=alphas.dtype)
+                                   dtype=alphas.dtype)
             weights = weights / weights.sum()
             median = Helper.weighted_average_oracle(points, weights)
             num_oracle_calls += 1
@@ -366,25 +355,26 @@ class Helper:
                 logger.info(log_entry)
             if abs(prev_obj_val - obj_val) < ftol * obj_val:
                 break
-            logger.info(f'[rfa agg] iter:  {i}, prev_obj_val: {prev_obj_val}, obj_val: {obj_val}, abs dis: { abs(prev_obj_val - obj_val)}')
-            logger.info(f'[rfa agg] iter:  {i}, weight: {weights}')
+            logger.info(f'[rfa agg] iter:  {i}, prev_obj_val: {prev_obj_val}, obj_val: {obj_val}, '
+                        f'abs dis: {abs(prev_obj_val - obj_val)}')
+            logger.info(f'[rfa agg] iter: {i}, weight: {weights}')
             wv = copy.deepcopy(weights)
         alphas = [Helper.l2dist(median, p) for p in points]
 
         update_norm = 0
         for name, data in median.items():
             update_norm += torch.sum(torch.pow(data, 2))
-        update_norm= math.sqrt(update_norm)
+        update_norm = math.sqrt(update_norm)
 
         if max_upd_norm is None or update_norm < max_upd_norm:
             for name, data in target_model.state_dict().items():
                 update_per_layer = median[name] * (self.params["eta"])
                 if self.params['diff_privacy']:
                     update_per_layer.add_(self.dp_noise(data, self.params['sigma']))
-                
+
                 # pseudo-fix for float vs long type mismatch error
                 update_per_layer = update_per_layer.type_as(data)
-                
+
                 data.add_(update_per_layer)
             is_updated = True
         else:
@@ -395,15 +385,13 @@ class Helper:
 
         return num_oracle_calls, is_updated, names, wv.cpu().numpy().tolist(), alphas
 
-
     @staticmethod
     def l2dist(p1, p2):
         """L2 distance between p1, p2, each of which is a list of nd-arrays"""
         squared_sum = 0
         for name, data in p1.items():
-            squared_sum += torch.sum(torch.pow(p1[name]- p2[name], 2))
+            squared_sum += torch.sum(torch.pow(p1[name] - p2[name], 2))
         return math.sqrt(squared_sum)
-
 
     @staticmethod
     def geometric_median_objective(median, points, alphas):
@@ -414,7 +402,6 @@ class Helper:
         return temp_sum
 
         # return sum([alpha * Helper.l2dist(median, p) for alpha, p in zip(alphas, points)])
-
 
     @staticmethod
     def weighted_average_oracle(points, weights):
@@ -430,19 +417,18 @@ class Helper:
         weighted_updates = dict()
 
         for name, data in points[0].items():
-            weighted_updates[name]=  torch.zeros_like(data)
+            weighted_updates[name] = torch.zeros_like(data)
 
-        for w, p in zip(weights, points): # for each agent
+        for w, p in zip(weights, points):  # for each agent
             for name, data in weighted_updates.items():
                 temp = (w / tot_weights).float().to(config.device)
-                temp= temp* (p[name].float())
+                temp = temp * (p[name].float())
                 # temp = w / tot_weights * p[name]
-                if temp.dtype!=data.dtype:
+                if temp.dtype != data.dtype:
                     temp = temp.type_as(data)
                 data.add_(temp)
 
         return weighted_updates
-
 
     def save_model(self, model=None, epoch=0, val_loss=0):
         if model is None:
@@ -460,26 +446,23 @@ class Helper:
                 self.save_checkpoint(saved_dict, False, f'{model_name}.best')
                 self.best_loss = val_loss
 
-
     def update_epoch_submit_dict(self, epochs_submit_update_dict, global_epochs_submit_dict, epoch, state_keys):
 
-        epoch_len= len(epochs_submit_update_dict[state_keys[0]])
+        epoch_len = len(epochs_submit_update_dict[state_keys[0]])
         for j in range(0, epoch_len):
             per_epoch_dict = dict()
             for i in range(0, len(state_keys)):
                 local_model_update_list = epochs_submit_update_dict[state_keys[i]]
                 local_model_update_dict = local_model_update_list[j]
-                per_epoch_dict[state_keys[i]]= local_model_update_dict
+                per_epoch_dict[state_keys[i]] = local_model_update_dict
 
-            global_epochs_submit_dict[epoch+j]= per_epoch_dict
+            global_epochs_submit_dict[epoch + j] = per_epoch_dict
 
         return global_epochs_submit_dict
-
 
     def save_epoch_submit_dict(self, global_epochs_submit_dict):
         with open(f'{self.folder_path}/epoch_submit_update.json', 'w') as outfile:
             json.dump(global_epochs_submit_dict, outfile, ensure_ascii=False, indent=1)
-
 
     def estimate_fisher(self, model, criterion, data_loader, sample_size, batch_size=64):
         # sample loglikelihoods from the dataset.
@@ -517,13 +500,11 @@ class Helper:
         parameter_names = [n.replace('.', '__') for n, p in model.named_parameters()]
         return {n: g ** 2 for n, g in zip(parameter_names, loglikelihood_grads)}
 
-
     def consolidate(self, model, fisher):
         for n, p in model.named_parameters():
             n = n.replace('.', '__')
             model.register_buffer('{}_estimated_mean'.format(n), p.data.clone())
             model.register_buffer('{}_estimated_fisher'.format(n), fisher[n].data.clone())
-
 
     def ewc_loss(self, model, lamda, cuda=False):
         try:
@@ -533,7 +514,7 @@ class Helper:
                 n = n.replace('.', '__')
                 mean = getattr(model, '{}_estimated_mean'.format(n))
                 fisher = getattr(model, '{}_estimated_fisher'.format(n))
-                
+
                 # wrap mean and fisher in variables.
                 # mean = Variable(mean)
                 # fisher = Variable(fisher)
@@ -563,10 +544,9 @@ class Helper:
 class FoolsGold(object):
     def __init__(self, use_memory=False):
         self.memory = None
-        self.memory_dict=dict()
+        self.memory_dict = dict()
         self.wv_history = []
         self.use_memory = use_memory
-
 
     def aggregate_gradients(self, client_grads, names):
         cur_time = time.time()
@@ -578,12 +558,12 @@ class FoolsGold(object):
         self.memory = np.zeros((num_clients, grad_len))
         grads = np.zeros((num_clients, grad_len))
         for i in range(len(client_grads)):
-            grads[i] = np.reshape(client_grads[i][-2].cpu().data.numpy(), (grad_len))
+            grads[i] = np.reshape(client_grads[i][-2].cpu().data.numpy(), grad_len)
             if names[i] in self.memory_dict.keys():
-                self.memory_dict[names[i]]+=grads[i]
+                self.memory_dict[names[i]] += grads[i]
             else:
-                self.memory_dict[names[i]]=copy.deepcopy(grads[i])
-            self.memory[i]=self.memory_dict[names[i]]
+                self.memory_dict[names[i]] = copy.deepcopy(grads[i])
+            self.memory[i] = self.memory_dict[names[i]]
         # self.memory += grads
 
         if self.use_memory:
@@ -596,7 +576,8 @@ class FoolsGold(object):
         agg_grads = []
         # Iterate through each layer
         for i in range(len(client_grads[0])):
-            assert len(wv) == len(client_grads), 'len of wv {} is not consistent with len of client_grads {}'.format(len(wv), len(client_grads))
+            assert len(wv) == len(client_grads), 'len of wv {} inconsistent with len of client_grads {}' \
+                .format(len(wv), len(client_grads))
             temp = wv[0] * client_grads[0][i].cpu().clone()
             # Aggregate gradients for a layer
             for c, client_grad in enumerate(client_grads):
@@ -607,7 +588,6 @@ class FoolsGold(object):
             agg_grads.append(temp)
         print('model aggregation took {}s'.format(time.time() - cur_time))
         return agg_grads, wv, alpha
-
 
     def foolsgold(self, grads):
         """
