@@ -190,7 +190,7 @@ class Helper:
 
         return noised_layer
 
-    def accumulate_weight(self, weight_accumulator, epochs_submit_update_dict, state_keys, num_samples_dict):
+    def accumulate_weight(self, weight_accumulator, epochs_submit_upd_dict, state_keys, num_samples_dict):
         """
          return Args:
              updates: dict of (num_samples, update), where num_samples is the
@@ -200,7 +200,7 @@ class Helper:
         if self.params['aggregation_methods'] == config.AGGR_FOOLSGOLD:
             updates = dict()
             for i in range(0, len(state_keys)):
-                local_model_gradients = epochs_submit_update_dict[state_keys[i]][0]  # agg 1 interval
+                local_model_gradients = epochs_submit_upd_dict[state_keys[i]][0]  # agg 1 interval
                 num_samples = num_samples_dict[state_keys[i]]
                 updates[state_keys[i]] = (num_samples, copy.deepcopy(local_model_gradients))
             return None, updates
@@ -208,7 +208,7 @@ class Helper:
         else:
             updates = dict()
             for i in range(0, len(state_keys)):
-                local_model_update_list = epochs_submit_update_dict[state_keys[i]]
+                local_model_update_list = epochs_submit_upd_dict[state_keys[i]]
                 update = dict()
                 num_samples = num_samples_dict[state_keys[i]]
 
@@ -443,13 +443,13 @@ class Helper:
                 self.save_checkpoint(saved_dict, False, f'{model_name}.best')
                 self.best_loss = val_loss
 
-    def update_epoch_submit_dict(self, epochs_submit_update_dict, global_epochs_submit_dict, epoch, state_keys):
+    def update_epoch_submit_dict(self, epochs_submit_upd_dict, global_epochs_submit_dict, epoch, state_keys):
 
-        epoch_len = len(epochs_submit_update_dict[state_keys[0]])
+        epoch_len = len(epochs_submit_upd_dict[state_keys[0]])
         for j in range(0, epoch_len):
             per_epoch_dict = dict()
             for i in range(0, len(state_keys)):
-                local_model_update_list = epochs_submit_update_dict[state_keys[i]]
+                local_model_update_list = epochs_submit_upd_dict[state_keys[i]]
                 local_model_update_dict = local_model_update_list[j]
                 per_epoch_dict[state_keys[i]] = local_model_update_dict
 
