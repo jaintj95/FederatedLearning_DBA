@@ -115,7 +115,7 @@ class Helper:
         return sum_var
 
     @staticmethod
-    def model_dist_norm_var(model, target_params_variables, norm=2):
+    def model_dist_norm_var(model, target_params_vars, norm=2):
         size = 0
         for name, layer in model.named_parameters():
             size += layer.view(-1).shape[0]
@@ -124,7 +124,7 @@ class Helper:
         sum_var = sum_var.to(config.device)
         size = 0
         for name, layer in model.named_parameters():
-            sum_var[size:size + layer.view(-1).shape[0]] = (layer - target_params_variables[name]).view(-1)
+            sum_var[size:size + layer.view(-1).shape[0]] = (layer - target_params_vars[name]).view(-1)
             size += layer.view(-1).shape[0]
 
         return torch.norm(sum_var, norm)
@@ -143,19 +143,17 @@ class Helper:
         loss = 1 - cs_sim
         return 1e3 * loss
 
-    def model_cosine_similarity(self, model, target_params_variables, model_id='attacker'):
+    def model_cosine_similarity(self, model, target_params_vars, model_id='attacker'):
         cs_list = list()
         cs_loss = nn.CosineSimilarity(dim=0)
         for name, data in model.named_parameters():
             if name == 'decoder.weight':
                 continue
 
-            model_update = 100 * (data.view(-1) - target_params_variables[name].view(-1)) + \
-                           target_params_variables[name].view(-1)
+            model_update = 100 * (data.view(-1) - target_params_vars[name].view(-1)) + target_params_vars[name].view(-1)
 
-            cs = F.cosine_similarity(model_update, target_params_variables[name].view(-1), dim=0)
-            # logger.info(torch.equal(layer.view(-1),
-            #                          target_params_variables[name].view(-1)))
+            cs = F.cosine_similarity(model_update, target_params_vars[name].view(-1), dim=0)
+            # logger.info(torch.equal(layer.view(-1), target_params_vars[name].view(-1)))
             # logger.info(name)
             # logger.info(cs.data[0])
             # logger.info(torch.norm(model_update).data[0])
@@ -173,8 +171,7 @@ class Helper:
         for name, layer in last_acc.items():
             cs = cs_loss(Variable(last_acc[name], requires_grad=False).view(-1),
                          Variable(new_acc[name], requires_grad=False).view(-1))
-            # logger.info(torch.equal(layer.view(-1),
-            #                          target_params_variables[name].view(-1)))
+            # logger.info(torch.equal(layer.view(-1), target_params_vars[name].view(-1)))
             # logger.info(name)
             # logger.info(cs.data[0])
             # logger.info(torch.norm(model_update).data[0])

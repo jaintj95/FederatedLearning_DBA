@@ -50,9 +50,9 @@ def ImageTrain(helper, start_epoch, local_model, target_model, is_poison, agent_
 
         for epoch in range(start_epoch, start_epoch + helper.params['aggr_epoch_interval']):
 
-            target_params_variables = dict()
+            target_params_vars = dict()
             for name, param in target_model.named_parameters():
-                target_params_variables[name] = last_local_model[name].clone().detach().requires_grad_(False)
+                target_params_vars[name] = last_local_model[name].clone().detach().requires_grad_(False)
 
             if is_poison and agent_name_key in helper.params['adversary_list'] and (epoch in localmodel_poison_epochs):
                 main.logger.info('poison_now')
@@ -83,7 +83,7 @@ def ImageTrain(helper, start_epoch, local_model, target_model, is_poison, agent_
                         output = model(data)
                         class_loss = F.cross_entropy(output, targets)
 
-                        distance_loss = helper.model_dist_norm_var(model, target_params_variables)
+                        distance_loss = helper.model_dist_norm_var(model, target_params_vars)
                         # Lmodel = αLclass + (1 − α)Lano; alpha_loss =1 fixed
                         loss = helper.params['alpha_loss'] * class_loss + (1-helper.params['alpha_loss']) * distance_loss
                         loss.backward()
@@ -105,7 +105,7 @@ def ImageTrain(helper, start_epoch, local_model, target_model, is_poison, agent_
                         if helper.params["batch_track_distance"]:
                             # we can calculate distance to this model now.
                             temp_data_len = len(data_iterator)
-                            distance = helper.model_dist_norm(model, target_params_variables)
+                            distance = helper.model_dist_norm(model, target_params_vars)
                             dis2global_list.append(distance)
                             model.track_distance_batch_vis(main.vis, temp_local_epoch, data_len=temp_data_len, 
                                                            batch=batch_id, distance_to_global_model=distance,
@@ -136,7 +136,7 @@ def ImageTrain(helper, start_epoch, local_model, target_model, is_poison, agent_
                 # internal epoch finish
                 main.logger.info(f'Global model norm: {helper.model_global_norm(target_model)}.')
                 main.logger.info(f'Norm before scaling: {helper.model_global_norm(model)}. '
-                                 f'Distance: {helper.model_dist_norm(model, target_params_variables)}')
+                                 f'Distance: {helper.model_dist_norm(model, target_params_vars)}')
 
                 if not helper.params['baseline']:
                     main.logger.info(f'will scale.')
@@ -155,7 +155,7 @@ def ImageTrain(helper, start_epoch, local_model, target_model, is_poison, agent_
                         target_value = last_local_model[key]
                         new_value = target_value + (value - target_value) * clip_rate
                         model.state_dict()[key].copy_(new_value)
-                    distance = helper.model_dist_norm(model, target_params_variables)
+                    distance = helper.model_dist_norm(model, target_params_vars)
 
                     main.logger.info(f'Scaled Norm after poisoning: '
                                      f'{helper.model_global_norm(model)}, distance: {distance}')
@@ -169,7 +169,7 @@ def ImageTrain(helper, start_epoch, local_model, target_model, is_poison, agent_
                                                        eid=helper.params['environment_name'],
                                                        name=str(agent_name_key), is_poisoned=True)
 
-                distance = helper.model_dist_norm(model, target_params_variables)
+                distance = helper.model_dist_norm(model, target_params_vars)
                 main.logger.info(f"Total norm for {current_number_of_adversaries} "
                                  f"adversaries is: {helper.model_global_norm(model)}. distance: {distance}")
 
@@ -217,7 +217,7 @@ def ImageTrain(helper, start_epoch, local_model, target_model, is_poison, agent_
                         if helper.params["batch_track_distance"]:
                             # we can calculate distance to this model now
                             temp_data_len = len(data_iterator)
-                            distance = helper.model_dist_norm(model, target_params_variables)
+                            distance = helper.model_dist_norm(model, target_params_vars)
                             dis2global_list.append(distance)
                             model.track_distance_batch_vis(main.vis, temp_local_epoch, data_len=temp_data_len, 
                                                            batch=batch_id, distance_to_global_model=distance,
