@@ -1,0 +1,168 @@
+current path: saved_models/model_tiny_Jun.25_13.27.40
+Loading data
+Successfully loaded data from tiny-imagenet-200
+build_classes_dict done
+train loaders done
+get poison test loader
+load data done
+create model done
+Poisoned following participants: [17]
+We use following environment for graphs:  tiny
+Server Epoch:1 choose agents : [83, 85, 64, 95, 54, 55, 27, 92, 15, 78].
+_Train Local_ResNet_18, epoch   1, local model 83, internal_epoch   1, Avg loss: 0.0544, Accuracy: 415/1953 (21.2494%)
+_Train Local_ResNet_18, epoch   1, local model 83, internal_epoch   2, Avg loss: 0.0343, Accuracy: 755/1953 (38.6585%)
+_Test Local_ResNet_18 poisoned: False, epoch: 1, Avg loss: 7.8111, Accuracy: 103/10000 (1.0300%)
+_Train Local_ResNet_18, epoch   1, local model 85, internal_epoch   1, Avg loss: 0.0540, Accuracy: 464/1988 (23.3400%)
+_Train Local_ResNet_18, epoch   1, local model 85, internal_epoch   2, Avg loss: 0.0354, Accuracy: 676/1988 (34.0040%)
+_Test Local_ResNet_18 poisoned: False, epoch: 1, Avg loss: 8.0466, Accuracy: 87/10000 (0.8700%)
+_Train Local_ResNet_18, epoch   1, local model 64, internal_epoch   1, Avg loss: 0.0652, Accuracy: 164/953 (17.2088%)
+_Train Local_ResNet_18, epoch   1, local model 64, internal_epoch   2, Avg loss: 0.0379, Accuracy: 313/953 (32.8437%)
+_Test Local_ResNet_18 poisoned: False, epoch: 1, Avg loss: 6.5588, Accuracy: 44/10000 (0.4400%)
+_Train Local_ResNet_18, epoch   1, local model 95, internal_epoch   1, Avg loss: 0.0531, Accuracy: 320/599 (53.4224%)
+_Train Local_ResNet_18, epoch   1, local model 95, internal_epoch   2, Avg loss: 0.0290, Accuracy: 490/599 (81.8030%)
+_Test Local_ResNet_18 poisoned: False, epoch: 1, Avg loss: 7.5315, Accuracy: 50/10000 (0.5000%)
+_Train Local_ResNet_18, epoch   1, local model 54, internal_epoch   1, Avg loss: 0.0547, Accuracy: 335/1130 (29.6460%)
+_Train Local_ResNet_18, epoch   1, local model 54, internal_epoch   2, Avg loss: 0.0289, Accuracy: 486/1130 (43.0088%)
+_Test Local_ResNet_18 poisoned: False, epoch: 1, Avg loss: 7.6091, Accuracy: 50/10000 (0.5000%)
+_Train Local_ResNet_18, epoch   1, local model 55, internal_epoch   1, Avg loss: 0.0567, Accuracy: 240/1071 (22.4090%)
+_Train Local_ResNet_18, epoch   1, local model 55, internal_epoch   2, Avg loss: 0.0296, Accuracy: 455/1071 (42.4837%)
+_Test Local_ResNet_18 poisoned: False, epoch: 1, Avg loss: 7.6151, Accuracy: 65/10000 (0.6500%)
+_Train Local_ResNet_18, epoch   1, local model 27, internal_epoch   1, Avg loss: 0.0533, Accuracy: 442/1587 (27.8513%)
+_Train Local_ResNet_18, epoch   1, local model 27, internal_epoch   2, Avg loss: 0.0340, Accuracy: 628/1587 (39.5715%)
+_Test Local_ResNet_18 poisoned: False, epoch: 1, Avg loss: 7.1719, Accuracy: 69/10000 (0.6900%)
+_Train Local_ResNet_18, epoch   1, local model 92, internal_epoch   1, Avg loss: 0.0521, Accuracy: 439/1715 (25.5977%)
+_Train Local_ResNet_18, epoch   1, local model 92, internal_epoch   2, Avg loss: 0.0310, Accuracy: 698/1715 (40.6997%)
+_Test Local_ResNet_18 poisoned: False, epoch: 1, Avg loss: 7.6761, Accuracy: 85/10000 (0.8500%)
+_Train Local_ResNet_18, epoch   1, local model 15, internal_epoch   1, Avg loss: 0.0573, Accuracy: 319/1154 (27.6430%)
+_Train Local_ResNet_18, epoch   1, local model 15, internal_epoch   2, Avg loss: 0.0309, Accuracy: 372/1154 (32.2357%)
+_Test Local_ResNet_18 poisoned: False, epoch: 1, Avg loss: 7.5882, Accuracy: 57/10000 (0.5700%)
+_Train Local_ResNet_18, epoch   1, local model 78, internal_epoch   1, Avg loss: 0.0840, Accuracy: 33/416 (7.9327%)
+_Train Local_ResNet_18, epoch   1, local model 78, internal_epoch   2, Avg loss: 0.0465, Accuracy: 177/416 (42.5481%)
+_Test Local_ResNet_18 poisoned: False, epoch: 1, Avg loss: 5.5579, Accuracy: 50/10000 (0.5000%)
+time spent on training: 399.99086141586304
+[rfa agg] training data poison_ratio: 0.0  data num: [1953, 1988, 953, 599, 1130, 1071, 1587, 1715, 1154, 416]
+[rfa agg] considering poison per batch poison_fraction: 0.0
+[rfa agg] init. name: [83, 85, 64, 95, 54, 55, 27, 92, 15, 78], weight: tensor([0.1554, 0.1582, 0.0758, 0.0477, 0.0899, 0.0852, 0.1263, 0.1365, 0.0918,
+        0.0331])
+[rfa agg] iter:  0, prev_obj_val: 62.187740325927734, obj_val: 65.62230682373047, abs dis: 3.4345664978027344
+[rfa agg] iter: 0, weight: tensor([0.0804, 0.0743, 0.0651, 0.0224, 0.1481, 0.1079, 0.1586, 0.1165, 0.2145,
+        0.0122])
+[rfa agg] iter:  1, prev_obj_val: 65.62230682373047, obj_val: 70.79613494873047, abs dis: 5.173828125
+[rfa agg] iter: 1, weight: tensor([0.0428, 0.0402, 0.0616, 0.0175, 0.2196, 0.1289, 0.0689, 0.0561, 0.3552,
+        0.0091])
+[rfa agg] iter:  2, prev_obj_val: 70.79613494873047, obj_val: 73.08242797851562, abs dis: 2.2862930297851562
+[rfa agg] iter: 2, weight: tensor([0.0360, 0.0341, 0.0897, 0.0198, 0.2814, 0.2602, 0.0522, 0.0447, 0.1721,
+        0.0098])
+[rfa agg] iter:  3, prev_obj_val: 73.08242797851562, obj_val: 73.05549621582031, abs dis: 0.0269317626953125
+[rfa agg] iter: 3, weight: tensor([0.0334, 0.0317, 0.1055, 0.0204, 0.2198, 0.3674, 0.0471, 0.0409, 0.1241,
+        0.0099])
+[rfa agg] iter:  4, prev_obj_val: 73.05549621582031, obj_val: 78.78340911865234, abs dis: 5.727912902832031
+[rfa agg] iter: 4, weight: tensor([0.0314, 0.0298, 0.0996, 0.0192, 0.2025, 0.4099, 0.0443, 0.0385, 0.1154,
+        0.0093])
+[rfa agg] iter:  5, prev_obj_val: 78.78340911865234, obj_val: 78.74954223632812, abs dis: 0.03386688232421875
+[rfa agg] iter: 5, weight: tensor([0.0395, 0.0377, 0.2228, 0.0301, 0.1600, 0.2855, 0.0532, 0.0472, 0.1102,
+        0.0139])
+[rfa agg] iter:  6, prev_obj_val: 78.74954223632812, obj_val: 75.8155288696289, abs dis: 2.9340133666992188
+[rfa agg] iter: 6, weight: tensor([0.0395, 0.0377, 0.2383, 0.0301, 0.1586, 0.2708, 0.0532, 0.0472, 0.1107,
+        0.0139])
+[rfa agg] iter:  7, prev_obj_val: 75.8155288696289, obj_val: 75.80168151855469, abs dis: 0.01384735107421875
+[rfa agg] iter: 7, weight: tensor([0.0366, 0.0348, 0.1577, 0.0249, 0.1789, 0.3443, 0.0504, 0.0442, 0.1163,
+        0.0118])
+[rfa agg] iter:  8, prev_obj_val: 75.80168151855469, obj_val: 73.06050872802734, abs dis: 2.7411727905273438
+[rfa agg] iter: 8, weight: tensor([0.0358, 0.0340, 0.1508, 0.0243, 0.1765, 0.3609, 0.0493, 0.0432, 0.1135,
+        0.0116])
+[rfa agg] iter:  9, prev_obj_val: 73.06050872802734, obj_val: 75.80615997314453, abs dis: 2.7456512451171875
+[rfa agg] iter: 9, weight: tensor([0.0317, 0.0301, 0.1012, 0.0193, 0.1997, 0.4088, 0.0447, 0.0388, 0.1163,
+        0.0094])
+_Test Target_ResNet_18 poisoned: False, epoch: 1, Avg loss: 5.3067, Accuracy: 38/10000 (0.3800%)
+_Test Target_ResNet_18 poisoned: True, epoch: 1, Avg loss: 5.3489, Accuracy: 0/9950 (0.0000%)
+saving model
+Done in 567.1622052192688 sec.
+Server Epoch:2 choose agents : [64, 47, 43, 23, 24, 98, 84, 28, 6, 17].
+_Train Local_ResNet_18, epoch   2, local model 64, internal_epoch   1, Avg loss: 0.0647, Accuracy: 146/953 (15.3200%)
+_Train Local_ResNet_18, epoch   2, local model 64, internal_epoch   2, Avg loss: 0.0386, Accuracy: 299/953 (31.3746%)
+_Test Local_ResNet_18 poisoned: False, epoch: 2, Avg loss: 6.7355, Accuracy: 69/10000 (0.6900%)
+_Train Local_ResNet_18, epoch   2, local model 47, internal_epoch   1, Avg loss: 0.1240, Accuracy: 2/134 (1.4925%)
+_Train Local_ResNet_18, epoch   2, local model 47, internal_epoch   2, Avg loss: 0.1114, Accuracy: 6/134 (4.4776%)
+_Test Local_ResNet_18 poisoned: False, epoch: 2, Avg loss: 5.3229, Accuracy: 50/10000 (0.5000%)
+_Train Local_ResNet_18, epoch   2, local model 43, internal_epoch   1, Avg loss: 0.0595, Accuracy: 296/946 (31.2896%)
+_Train Local_ResNet_18, epoch   2, local model 43, internal_epoch   2, Avg loss: 0.0355, Accuracy: 341/946 (36.0465%)
+_Test Local_ResNet_18 poisoned: False, epoch: 2, Avg loss: 6.1632, Accuracy: 55/10000 (0.5500%)
+_Train Local_ResNet_18, epoch   2, local model 23, internal_epoch   1, Avg loss: 0.0627, Accuracy: 300/715 (41.9580%)
+_Train Local_ResNet_18, epoch   2, local model 23, internal_epoch   2, Avg loss: 0.0403, Accuracy: 438/715 (61.2587%)
+_Test Local_ResNet_18 poisoned: False, epoch: 2, Avg loss: 5.7788, Accuracy: 50/10000 (0.5000%)
+_Train Local_ResNet_18, epoch   2, local model 24, internal_epoch   1, Avg loss: 0.0786, Accuracy: 15/312 (4.8077%)
+_Train Local_ResNet_18, epoch   2, local model 24, internal_epoch   2, Avg loss: 0.0419, Accuracy: 156/312 (50.0000%)
+_Test Local_ResNet_18 poisoned: False, epoch: 2, Avg loss: 5.4500, Accuracy: 50/10000 (0.5000%)
+_Train Local_ResNet_18, epoch   2, local model 98, internal_epoch   1, Avg loss: 0.0836, Accuracy: 12/373 (3.2172%)
+_Train Local_ResNet_18, epoch   2, local model 98, internal_epoch   2, Avg loss: 0.0489, Accuracy: 154/373 (41.2869%)
+_Test Local_ResNet_18 poisoned: False, epoch: 2, Avg loss: 5.4971, Accuracy: 50/10000 (0.5000%)
+_Train Local_ResNet_18, epoch   2, local model 84, internal_epoch   1, Avg loss: 0.0635, Accuracy: 312/1190 (26.2185%)
+_Train Local_ResNet_18, epoch   2, local model 84, internal_epoch   2, Avg loss: 0.0331, Accuracy: 432/1190 (36.3025%)
+_Test Local_ResNet_18 poisoned: False, epoch: 2, Avg loss: 7.1348, Accuracy: 54/10000 (0.5400%)
+_Train Local_ResNet_18, epoch   2, local model 28, internal_epoch   1, Avg loss: 0.0570, Accuracy: 379/1581 (23.9722%)
+_Train Local_ResNet_18, epoch   2, local model 28, internal_epoch   2, Avg loss: 0.0341, Accuracy: 568/1581 (35.9266%)
+_Test Local_ResNet_18 poisoned: False, epoch: 2, Avg loss: 7.6482, Accuracy: 86/10000 (0.8600%)
+_Train Local_ResNet_18, epoch   2, local model 6, internal_epoch   1, Avg loss: 0.0565, Accuracy: 378/1956 (19.3252%)
+_Train Local_ResNet_18, epoch   2, local model 6, internal_epoch   2, Avg loss: 0.0325, Accuracy: 629/1956 (32.1575%)
+_Test Local_ResNet_18 poisoned: False, epoch: 2, Avg loss: 8.2146, Accuracy: 110/10000 (1.1000%)
+poison local model 17 index 0 
+_Train Local_ResNet_18, epoch   2, local model 17, internal_epoch   1, Avg loss: 0.0512, Accuracy: 358/1574 (22.7446%)
+_Train Local_ResNet_18, epoch   2, local model 17, internal_epoch   2, Avg loss: 0.0280, Accuracy: 647/1574 (41.1055%)
+_Test Local_ResNet_18 poisoned: False, epoch: 2, Avg loss: 8.0127, Accuracy: 83/10000 (0.8300%)
+time spent on training: 172.67525720596313
+[rfa agg] training data poison_ratio: 0.1617012533388124  data num: [953, 134, 946, 715, 312, 373, 1190, 1581, 1956, 1574]
+[rfa agg] considering poison per batch poison_fraction: 0.05053164166837888
+[rfa agg] init. name: [64, 47, 43, 23, 24, 98, 84, 28, 6, 17], weight: tensor([0.0979, 0.0138, 0.0972, 0.0735, 0.0321, 0.0383, 0.1223, 0.1624, 0.2009,
+        0.1617])
+[rfa agg] iter:  0, prev_obj_val: 63.684181213378906, obj_val: 63.45195007324219, abs dis: 0.23223114013671875
+[rfa agg] iter: 0, weight: tensor([0.1141, 0.0037, 0.1138, 0.0472, 0.0099, 0.0129, 0.4227, 0.1043, 0.0677,
+        0.1039])
+[rfa agg] iter:  1, prev_obj_val: 63.45195007324219, obj_val: 67.29302978515625, abs dis: 3.8410797119140625
+[rfa agg] iter: 1, weight: tensor([0.0978, 0.0032, 0.0976, 0.0406, 0.0085, 0.0111, 0.5047, 0.0894, 0.0581,
+        0.0890])
+[rfa agg] iter:  2, prev_obj_val: 67.29302978515625, obj_val: 68.53929901123047, abs dis: 1.2462692260742188
+[rfa agg] iter: 2, weight: tensor([0.1963, 0.0044, 0.1976, 0.0650, 0.0119, 0.0156, 0.2637, 0.0907, 0.0646,
+        0.0903])
+[rfa agg] iter:  3, prev_obj_val: 68.53929901123047, obj_val: 69.92889404296875, abs dis: 1.3895950317382812
+[rfa agg] iter: 3, weight: tensor([0.2428, 0.0042, 0.2449, 0.0677, 0.0117, 0.0153, 0.1945, 0.0803, 0.0586,
+        0.0800])
+[rfa agg] iter:  4, prev_obj_val: 69.92889404296875, obj_val: 71.43901824951172, abs dis: 1.5101242065429688
+[rfa agg] iter: 4, weight: tensor([0.2887, 0.0038, 0.2937, 0.0659, 0.0106, 0.0140, 0.1423, 0.0660, 0.0492,
+        0.0657])
+[rfa agg] iter:  5, prev_obj_val: 71.43901824951172, obj_val: 73.29012298583984, abs dis: 1.851104736328125
+[rfa agg] iter: 5, weight: tensor([0.3353, 0.0031, 0.3474, 0.0592, 0.0088, 0.0117, 0.0976, 0.0496, 0.0378,
+        0.0494])
+[rfa agg] iter:  6, prev_obj_val: 73.29012298583984, obj_val: 81.65202331542969, abs dis: 8.361900329589844
+[rfa agg] iter: 6, weight: tensor([0.3626, 0.0027, 0.3846, 0.0556, 0.0076, 0.0101, 0.0702, 0.0385, 0.0299,
+        0.0384])
+[rfa agg] iter:  7, prev_obj_val: 81.65202331542969, obj_val: 73.35643005371094, abs dis: 8.29559326171875
+[rfa agg] iter: 7, weight: tensor([0.2593, 0.0055, 0.2600, 0.1745, 0.0159, 0.0216, 0.0934, 0.0604, 0.0493,
+        0.0602])
+[rfa agg] iter:  8, prev_obj_val: 73.35643005371094, obj_val: 75.77961730957031, abs dis: 2.423187255859375
+[rfa agg] iter: 8, weight: tensor([0.3604, 0.0029, 0.3640, 0.0612, 0.0082, 0.0109, 0.0763, 0.0419, 0.0325,
+        0.0417])
+[rfa agg] iter:  9, prev_obj_val: 75.77961730957031, obj_val: 75.7787094116211, abs dis: 0.00090789794921875
+[rfa agg] iter: 9, weight: tensor([0.3477, 0.0033, 0.3540, 0.0773, 0.0094, 0.0126, 0.0744, 0.0435, 0.0344,
+        0.0434])
+_Test Target_ResNet_18 poisoned: False, epoch: 2, Avg loss: 5.3073, Accuracy: 46/10000 (0.4600%)
+_Test Target_ResNet_18 poisoned: True, epoch: 2, Avg loss: 5.2933, Accuracy: 0/9950 (0.0000%)
+saving model
+Done in 272.88835430145264 sec.
+Server Epoch:3 choose agents : [75, 58, 7, 84, 94, 13, 3, 69, 93, 10].
+_Train Local_ResNet_18, epoch   3, local model 75, internal_epoch   1, Avg loss: 0.0620, Accuracy: 264/776 (34.0206%)
+_Train Local_ResNet_18, epoch   3, local model 75, internal_epoch   2, Avg loss: 0.0312, Accuracy: 399/776 (51.4175%)
+_Test Local_ResNet_18 poisoned: False, epoch: 3, Avg loss: 7.3991, Accuracy: 50/10000 (0.5000%)
+_Train Local_ResNet_18, epoch   3, local model 58, internal_epoch   1, Avg loss: 0.0583, Accuracy: 347/803 (43.2130%)
+_Train Local_ResNet_18, epoch   3, local model 58, internal_epoch   2, Avg loss: 0.0340, Accuracy: 381/803 (47.4471%)
+_Test Local_ResNet_18 poisoned: False, epoch: 3, Avg loss: 6.2158, Accuracy: 51/10000 (0.5100%)
+_Train Local_ResNet_18, epoch   3, local model 7, internal_epoch   1, Avg loss: 0.0517, Accuracy: 364/891 (40.8530%)
+_Train Local_ResNet_18, epoch   3, local model 7, internal_epoch   2, Avg loss: 0.0252, Accuracy: 461/891 (51.7396%)
+_Test Local_ResNet_18 poisoned: False, epoch: 3, Avg loss: 7.9869, Accuracy: 53/10000 (0.5300%)
+_Train Local_ResNet_18, epoch   3, local model 84, internal_epoch   1, Avg loss: 0.0632, Accuracy: 319/1190 (26.8067%)
+_Train Local_ResNet_18, epoch   3, local model 84, internal_epoch   2, Avg loss: 0.0332, Accuracy: 429/1190 (36.0504%)
+_Test Local_ResNet_18 poisoned: False, epoch: 3, Avg loss: 7.2908, Accuracy: 55/10000 (0.5500%)
+_Train Local_ResNet_18, epoch   3, local model 94, internal_epoch   1, Avg loss: 0.0553, Accuracy: 342/1662 (20.5776%)
+_Train Local_ResNet_18, epoch   3, local model 94, internal_epoch   2, Avg loss: 0.0341, Accuracy: 584/1662 (35.1384%)
+_Test Local_ResNet_18 poisoned: False, epoch: 3, Avg loss: 8.2756, Accuracy: 98/10000 (0.9800%)
+_Train Local_ResNet_18, epoch   3, local model 13, internal_epoch   1, Avg loss: 0.0583, Accuracy: 310/1645 (18.8450%)

@@ -2,7 +2,7 @@ import torch
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 print("Device: ",device)
 
-VIS_PORT = 8097
+VIS_PORT = 8098
 
 AGGR_MEAN = 'mean'
 AGGR_GEO_MED = 'geom_median'
