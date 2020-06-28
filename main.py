@@ -222,7 +222,8 @@ if __name__ == '__main__':
             maxiter = helper.params['geom_median_maxiter']
             num_oracle_calls, is_updated, names, weights, alphas = helper.geometric_median_update(helper.target_model,
                                                                                                   updates,
-                                                                                                  maxiter=maxiter)
+                                                                                                  maxiter=maxiter,
+                                                                                                  max_upd_norm=config.MAX_UPDATE_NORM)
             vis_agg_weight(helper, names, weights, epoch, vis, adversarial_name_keys)
             vis_fg_alpha(helper, names, alphas, epoch, vis, adversarial_name_keys)
 
