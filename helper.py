@@ -13,7 +13,7 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 
 import config
-import utils.csv_record
+import utils.csv_record as csv_record
 
 import logging
 
@@ -289,7 +289,7 @@ class Helper:
                 params.grad = agg_grads[i].to(config.device)
         optimizer.step()
         wv = wv.tolist()
-        utils.csv_record.add_weight_result(names, wv, alpha)
+        csv_record.add_weight_result(names, wv, alpha)
         return True, names, wv, alpha
 
     def geometric_median_update(self, target_model, updates, maxiter=4, eps=1e-5, verbose=False, ftol=1e-6,
@@ -378,7 +378,7 @@ class Helper:
             logger.info('\t\t\tUpdate norm = {} is too large. Update rejected'.format(update_norm))
             is_updated = False
 
-        utils.csv_record.add_weight_result(names, wv.cpu().numpy().tolist(), alphas)
+        csv_record.add_weight_result(names, wv.cpu().numpy().tolist(), alphas)
 
         return num_oracle_calls, is_updated, names, wv.cpu().numpy().tolist(), alphas
 
