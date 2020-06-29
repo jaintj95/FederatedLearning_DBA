@@ -25,7 +25,7 @@ def LoanTrain(helper, start_epoch, local_model, target_model, is_poison, state_k
             last_params_vars[name] = target_model.state_dict()[name].clone()
 
         state_key = state_keys[model_id]
-        ## Synchronize LR and models
+        # Synchronize LR and models
         model = local_model
         model.copy_params(target_model.state_dict())
         optimizer = optim.SGD(model.parameters(), lr=helper.params['lr'],
@@ -59,7 +59,7 @@ def LoanTrain(helper, start_epoch, local_model, target_model, is_poison, state_k
             trigger_values = helper.params[str(adversarial_index) + '_poison_trigger_values']
 
         for epoch in range(start_epoch, start_epoch + helper.params['aggr_epoch_interval']):
-            ### This is for calculating distances
+            # This is for calculating distances
             target_params_vars = dict()
             for name, param in target_model.named_parameters():
                 # target_params_vars[name] = last_params_vars[name].clone().detach().requires_grad_(False)
@@ -149,7 +149,7 @@ def LoanTrain(helper, start_epoch, local_model, target_model, is_poison, state_k
                 main.logger.info(f'Norm before scaling: {helper.model_global_norm(model)}. '
                                  f'Distance: {helper.model_dist_norm(model, target_params_vars)}')
 
-                ### Adversary wants to scale his weights. Baseline model doesn't do this
+                # Adversary wants to scale his weights. Baseline model doesn't do this
                 # Some NORM work happening here
                 if not helper.params['baseline']:
                     clip_rate = helper.params['scale_weights_poison']
@@ -164,7 +164,7 @@ def LoanTrain(helper, start_epoch, local_model, target_model, is_poison, state_k
 
                 distance = helper.model_dist_norm(model, target_params_vars)
                 main.logger.info(f"Total norm for {curr_adversary_count} "
-                            f"adversaries is: {helper.model_global_norm(model)}. distance: {distance}")
+                                 f"adversaries is: {helper.model_global_norm(model)}. distance: {distance}")
 
             else:
                 for internal_epoch in range(1, helper.params['internal_epochs'] + 1):
@@ -196,7 +196,6 @@ def LoanTrain(helper, start_epoch, local_model, target_model, is_poison, state_k
                         pred = output.data.max(1)[1]  # get the index of the max log-probability
                         correct += pred.eq(targets.data.view_as(pred)).cpu().sum().item()
 
-
                     acc = 100.0 * (float(correct) / float(data_size))
                     total_l = total_loss / data_size
 
@@ -227,8 +226,8 @@ def LoanTrain(helper, start_epoch, local_model, target_model, is_poison, state_k
                                                                            visualize=True, agent_name_key=state_key)
                     csv_record.poisontest_result.append([state_key, epoch, e_loss, e_acc, e_correct, e_total])
 
-                #  test on local triggers
-                if  state_key in helper.params['adversary_list']:
+                # test on local triggers
+                if state_key in helper.params['adversary_list']:
                     if helper.params['vis_trigger_split_test']:
                         model.trigger_agent_test_vis(main.vis, epoch, acc=e_acc, loss=None,
                                                      eid=helper.params['environment_name'],
