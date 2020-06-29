@@ -30,7 +30,6 @@ logger = logging.getLogger("logger")
 vis = visdom.Visdom(port=config.VIS_PORT)
 criterion = nn.CrossEntropyLoss()
 
-# What's up with so many seeds?
 torch.manual_seed(1)
 torch.cuda.manual_seed(1)
 random.seed(1)
@@ -117,7 +116,9 @@ if __name__ == '__main__':
         params_loaded = yaml.load(f)
 
     current_time = datetime.now().strftime('%b.%d_%H.%M.%S')
-
+    print(params_loaded)
+    print(params_loaded.get('name'))
+    print(params_loaded.get('name', 'tiny'))
     # Loan dataset
     if params_loaded['type'] == config.TYPE_LOAN:
         helper = LoanHelper(current_time=current_time, params=params_loaded,
@@ -149,7 +150,7 @@ if __name__ == '__main__':
     helper.create_model()
     logger.info(f'create model done')
 
-    ### Create models
+    # Create models
     if helper.params['is_poison']:
         logger.info(f"Poisoned following participants: {(helper.params['adversary_list'])}")
 
@@ -218,6 +219,7 @@ if __name__ == '__main__':
                                                       target_model=helper.target_model,
                                                       epoch_interval=helper.params['aggr_epoch_interval'])
             num_oracle_calls = 1
+
         elif helper.params['aggregation_methods'] == config.AGGR_GEO_MED:
             maxiter = helper.params['geom_median_maxiter']
             num_oracle_calls, is_updated, names, weights, alphas = helper.geometric_median_update(helper.target_model,
