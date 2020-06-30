@@ -5,9 +5,6 @@ import torch.nn.functional as F
 import config
 import main
 
-"""
-Module that defines various kinds of tests 
-"""
 
 def Mytest(helper, epoch, model, is_poison=False, visualize=True, agent_name_key=""):
     """
@@ -32,9 +29,6 @@ def Mytest(helper, epoch, model, is_poison=False, visualize=True, agent_name_key
                 pred = output.data.max(dim=1)[1]  # get the index of the max log-probability
                 correct += pred.eq(targets.data.view_as(pred)).cpu().sum().item()
 
-    # elif helper.params['type'] == config.TYPE_CIFAR \
-    #         or helper.params['type'] == config.TYPE_MNIST \
-    #         or helper.params['type'] == config.TYPE_TINYIMAGENET:
     elif helper.params['type'] in [config.TYPE_CIFAR, config.TYPE_MNIST, config.TYPE_TINYIMAGENET]:
         data_iterator = helper.test_data
         for batch_idx, batch in enumerate(data_iterator):
@@ -51,11 +45,11 @@ def Mytest(helper, epoch, model, is_poison=False, visualize=True, agent_name_key
     main.logger.info('_Test {} poisoned: {}, epoch: {}, Avg loss: {:.4f}, ''Accuracy: {}/{} ({:.4f}%)'
                .format(model.name, is_poison, epoch, avg_loss, correct, data_size, acc))
 
-    if visualize: # loss =avg_loss
+    if visualize:  # loss = avg_loss
         model.test_vis(main.vis, epoch, acc, loss=None, eid=helper.params['environment_name'], 
                        agent_name_key=str(agent_name_key))
     model.train()
-    return (avg_loss, acc, correct, data_size)
+    return avg_loss, acc, correct, data_size
 
 
 def Mytest_poison(helper, epoch, model, is_poison=False, visualize=True, agent_name_key=""):
@@ -99,10 +93,7 @@ def Mytest_poison(helper, epoch, model, is_poison=False, visualize=True, agent_n
                 total_loss += F.cross_entropy(output, targets, reduction='sum').item()  # sum up batch loss
                 pred = output.data.max(dim=1)[1]  # get the index of the max log-probability
                 correct += pred.eq(targets.data.view_as(pred)).cpu().sum().item()
-    
-    # elif helper.params['type'] == config.TYPE_CIFAR \
-    #         or helper.params['type'] == config.TYPE_MNIST \
-    #         or helper.params['type'] == config.TYPE_TINYIMAGENET:
+
     elif helper.params['type'] in [config.TYPE_CIFAR, config.TYPE_MNIST, config.TYPE_TINYIMAGENET]:
         data_iterator = helper.test_data_poison
         for batch_idx, batch in enumerate(data_iterator):
@@ -118,7 +109,7 @@ def Mytest_poison(helper, epoch, model, is_poison=False, visualize=True, agent_n
     avg_loss = total_loss / poison_data_count if poison_data_count!=0 else 0
     main.logger.info('_Test {} poisoned: {}, epoch: {}, Avg loss: {:.4f}, ''Accuracy: {}/{} ({:.4f}%)'
                .format(model.name, is_poison, epoch, avg_loss, correct, poison_data_count, acc))
-    if visualize: #loss = avg_loss
+    if visualize:  # loss = avg_loss
         model.poison_test_vis(main.vis, epoch, acc, loss=None, eid=helper.params['environment_name'],
                               agent_name_key=str(agent_name_key))
 
@@ -170,9 +161,6 @@ def Mytest_poison_trigger(helper, model, adver_trigger_index):
                 pred = output.data.max(dim=1)[1]  # get the index of the max log-probability
                 correct += pred.eq(targets.data.view_as(pred)).cpu().sum().item()
 
-    # elif helper.params['type'] == config.TYPE_CIFAR \
-    #         or helper.params['type'] == config.TYPE_MNIST \
-    #         or helper.params['type'] == config.TYPE_TINYIMAGENET:
     elif helper.params['type'] in [config.TYPE_CIFAR, config.TYPE_MNIST, config.TYPE_TINYIMAGENET]:
         data_iterator = helper.test_data_poison
         adv_index = adver_trigger_index
@@ -231,16 +219,12 @@ def Mytest_poison_agent_trigger(helper, model, agent_name_key):
                 pred = output.data.max(dim=1)[1]  # get the index of the max log-probability
                 correct += pred.eq(targets.data.view_as(pred)).cpu().sum().item()
 
-    # elif helper.params['type'] == config.TYPE_CIFAR \
-    #         or helper.params['type'] == config.TYPE_MNIST \
-    #         or helper.params['type'] == config.TYPE_TINYIMAGENET:
     elif helper.params['type'] in [config.TYPE_CIFAR, config.TYPE_MNIST, config.TYPE_TINYIMAGENET]:
         data_iterator = helper.test_data_poison
         adv_index = -1
 
-        # This whole loop seems redudant
+        # Whole loop seems redudant
         # If agent_name_key is in adversary_list then we replace adv_index with it.
-        # Why complicate it so much then?
         # Maybe check for membership and if present then replace adv_index       
         # for temp_index in range(0, len(helper.params['adversary_list'])):
         #     if int(agent_name_key) == helper.params['adversary_list'][temp_index]:
@@ -251,7 +235,6 @@ def Mytest_poison_agent_trigger(helper, model, agent_name_key):
             if int(agent_name_key) == helper.params['adversary_list'][idx]:
                 adv_index = temp_index
                 break
-        
 
         for batch_idx, batch in enumerate(data_iterator):
             data, targets, poison_num = helper.get_poison_batch(batch, adversarial_idx=adv_index, eval=True)
@@ -262,8 +245,8 @@ def Mytest_poison_agent_trigger(helper, model, agent_name_key):
             pred = output.data.max(dim=1)[1]  # get the index of the max log-probability
             correct += pred.eq(targets.data.view_as(pred)).cpu().sum().item()
 
-    acc = 100.0 * (float(correct) / float(poison_data_count)) if poison_data_count!=0 else 0
-    avg_loss = total_loss / poison_data_count if poison_data_count!=0 else 0
+    acc = 100.0 * (float(correct) / float(poison_data_count)) if poison_data_count != 0 else 0
+    avg_loss = total_loss / poison_data_count if poison_data_count != 0 else 0
 
     model.train()
     return avg_loss, acc, correct, poison_data_count

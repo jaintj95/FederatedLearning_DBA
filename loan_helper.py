@@ -12,7 +12,6 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 import torch
-#import torch.utils.data as data
 from torch.utils.data import DataLoader, Dataset
 from torchvision import datasets, transforms
 
@@ -24,7 +23,7 @@ logger = logging.getLogger("logger")
 POISONED_PARTICIPANT_POS = 0
 
 
-class StateHelper():
+class StateHelper:
     def __init__(self, params):
         self.params = params
         self.name = ""
@@ -103,27 +102,27 @@ class LoanHelper(Helper):
         self.target_model = target_model
 
     def load_data(self, params_loaded):
-        self.statehelper_dic ={}
-        self.allStateHelperList=[]
-        self.participants_list=[]
-        self.advasarial_namelist=params_loaded['adversary_list']
+        self.statehelper_dic = {}
+        self.allStateHelperList = []
+        self.participants_list = []
+        self.advasarial_namelist = params_loaded['adversary_list']
         self.benign_namelist = []
         self.feature_dict = dict()
 
         filepath_prefix='./data/loan/'
         all_userfilename_list = os.listdir(filepath_prefix)
-        for j in range(0,len(all_userfilename_list)):
+        for j in range(0, len(all_userfilename_list)):
             user_filename = all_userfilename_list[j]
             state_name = user_filename[5:7]
             helper = StateHelper(params=params_loaded)
-            file_path = filepath_prefix+ user_filename
+            file_path = filepath_prefix + user_filename
             helper.load_data(file_path)
             self.allStateHelperList.append(helper)
             helper.name = state_name
             self.statehelper_dic[state_name] = helper
-            if j==0:
-                for k in range(0,len(helper.all_dataset.data_column_name)):
-                    self.feature_dict[helper.all_dataset.data_column_name[k]]=k
+            if j == 0:
+                for k in range(0, len(helper.all_dataset.data_column_name)):
+                    self.feature_dict[helper.all_dataset.data_column_name[k]] = k
 
         for j in range(0, params_loaded['number_of_total_participants']):
             if j >= len(all_userfilename_list):
@@ -133,10 +132,10 @@ class LoanHelper(Helper):
             if state_name not in self.advasarial_namelist:
                 self.benign_namelist.append(state_name)
 
-        if params_loaded['is_random_namelist']==False:
+        if params_loaded['is_random_namelist'] == False:
             self.participants_list = params_loaded['participants_namelist']
         else:
-            self.participants_list= self.benign_namelist+ self.advasarial_namelist
+            self.participants_list = self.benign_namelist + self.advasarial_namelist
 
 
 class LoanDataset(Dataset):
@@ -162,17 +161,17 @@ class LoanDataset(Dataset):
         x_val = loans_df[x_feature]
         y_val = loans_df['loan_status']
         # x_val.head()
-        y_val=y_val.astype('int')
+        y_val = y_val.astype('int')
         x_train, x_test, y_train, y_test = train_test_split(x_val, y_val, test_size=0.2, random_state=42)
-        self.data_column_name = x_train.columns.values.tolist() # list
-        self.label_column_name= x_test.columns.values.tolist()
-        self.train_data = x_train.values # numpy array
+        self.data_column_name = x_train.columns.values.tolist()  # list
+        self.label_column_name = x_test.columns.values.tolist()
+        self.train_data = x_train.values  # numpy array
         self.test_data = x_test.values
 
         self.train_labels = y_train.values
         self.test_labels = y_test.values
 
-        print(csv_file, "train", len(self.train_data),"test",len(self.test_data))
+        print(csv_file, "train", len(self.train_data), "test", len(self.test_data))
 
     def __len__(self):
         if self.train:
@@ -224,13 +223,13 @@ if __name__ == '__main__':
     helper = LoanHelper(current_time=current_time, params=params_loaded, name=params_loaded.get('name', 'loan'))
     helper.load_data(params_loaded)
     state_keys = list(helper.statehelper_dic.keys())
-    for i in range(0,len(state_keys)):
+    for i in range(0, len(state_keys)):
         state_helper = helper.statehelper_dic[state_keys[i]]
         data_source = state_helper.get_trainloader()
         data_iterator = data_source
-        count= 0
+        count = 0
         for batch_id, batch in enumerate(data_iterator):
-            count +=1
-        print(state_keys[i], "train batch num",count)
+            count += 1
+        print(state_keys[i], "train batch num", count)
         break
 

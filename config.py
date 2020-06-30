@@ -1,6 +1,6 @@
 import torch
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-print("Device: ",device)
+print("Device: ", device)
 
 VIS_PORT = 8098
 
