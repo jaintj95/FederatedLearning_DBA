@@ -1,5 +1,5 @@
 ---
-type: tiny-imagenet-200
+type: tiny
 test_batch_size: 64
 lr: 0.001
 poison_lr: 0.001

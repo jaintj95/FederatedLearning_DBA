@@ -116,32 +116,42 @@ if __name__ == '__main__':
         params_loaded = yaml.load(f)
 
     current_time = datetime.now().strftime('%b.%d_%H.%M.%S')
-    print(params_loaded)
-    print(params_loaded.get('name'))
-    print(params_loaded.get('name', 'tiny'))
+
     # Loan dataset
     if params_loaded['type'] == config.TYPE_LOAN:
         helper = LoanHelper(current_time=current_time, params=params_loaded,
                             name=params_loaded.get('name', 'loan'))
         helper.load_data(params_loaded)
 
-    # CIFAR dataset
-    elif params_loaded['type'] == config.TYPE_CIFAR:
+    # Image Datasets
+    elif params_loaded['type'] in [config.TYPE_CIFAR, config.TYPE_MNIST, config.TYPE_TINYIMAGENET]:
         helper = ImageHelper(current_time=current_time, params=params_loaded,
-                             name=params_loaded.get('name', 'cifar'))
+                             name=params_loaded.get('name'))
         helper.load_data()
 
-    # MNIST dataset
-    elif params_loaded['type'] == config.TYPE_MNIST:
-        helper = ImageHelper(current_time=current_time, params=params_loaded,
-                             name=params_loaded.get('name', 'mnist'))
-        helper.load_data()
+    # # Loan dataset
+    # if params_loaded['type'] == config.TYPE_LOAN:
+    #     helper = LoanHelper(current_time=current_time, params=params_loaded,
+    #                         name=params_loaded.get('name', 'loan'))
+    #     helper.load_data(params_loaded)
 
-    # Tiny-ImageNet dataset
-    elif params_loaded['type'] == config.TYPE_TINYIMAGENET:
-        helper = ImageHelper(current_time=current_time, params=params_loaded,
-                             name=params_loaded.get('name', 'tiny'))
-        helper.load_data()
+    # # CIFAR dataset
+    # elif params_loaded['type'] == config.TYPE_CIFAR:
+    #     helper = ImageHelper(current_time=current_time, params=params_loaded,
+    #                          name=params_loaded.get('name', 'cifar'))
+    #     helper.load_data()
+
+    # # MNIST dataset
+    # elif params_loaded['type'] == config.TYPE_MNIST:
+    #     helper = ImageHelper(current_time=current_time, params=params_loaded,
+    #                          name=params_loaded.get('name', 'mnist'))
+    #     helper.load_data()
+
+    # # Tiny-ImageNet dataset
+    # elif params_loaded['type'] == config.TYPE_TINYIMAGENET:
+    #     helper = ImageHelper(current_time=current_time, params=params_loaded,
+    #                          name=params_loaded.get('name', 'tiny'))
+    #     helper.load_data()
 
     else:
         helper = None
