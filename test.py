@@ -42,8 +42,9 @@ def Mytest(helper, epoch, model, is_poison=False, visualize=True, agent_name_key
     acc = 100.0 * (float(correct) / float(data_size))  if data_size!=0 else 0
     avg_loss = total_loss / data_size if data_size!=0 else 0
 
-    main.logger.info('_Test {} poisoned: {}, epoch: {}, Avg loss: {:.4f}, ''Accuracy: {}/{} ({:.4f}%)'
+    main.logger.info('_Test {}, poisoned: {}, epoch: {}, Avg loss: {:.4f}, ''Accuracy: {}/{} ({:.4f}%)'
                .format(model.name, is_poison, epoch, avg_loss, correct, data_size, acc))
+    print('')  # adds an empty line for clarity
 
     if visualize:  # loss = avg_loss
         model.test_vis(main.vis, epoch, acc, loss=None, eid=helper.params['environment_name'], 
@@ -107,8 +108,9 @@ def Mytest_poison(helper, epoch, model, is_poison=False, visualize=True, agent_n
 
     acc = 100.0 * (float(correct) / float(poison_data_count))  if poison_data_count!=0 else 0
     avg_loss = total_loss / poison_data_count if poison_data_count!=0 else 0
-    main.logger.info('_Test {} poisoned: {}, epoch: {}, Avg loss: {:.4f}, ''Accuracy: {}/{} ({:.4f}%)'
+    main.logger.info('_Test {}, poisoned: {}, epoch: {}, Avg loss: {:.4f}, ''Accuracy: {}/{} ({:.4f}%)'
                .format(model.name, is_poison, epoch, avg_loss, correct, poison_data_count, acc))
+
     if visualize:  # loss = avg_loss
         model.poison_test_vis(main.vis, epoch, acc, loss=None, eid=helper.params['environment_name'],
                               agent_name_key=str(agent_name_key))
