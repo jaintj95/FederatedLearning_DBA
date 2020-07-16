@@ -211,7 +211,7 @@ def ImageTrain(helper, start_epoch, local_model, target_model, is_poison, agent_
                             temp_data_len = len(data_iterator)
                             model.train_batch_vis(main.vis, temp_local_epoch, data_len=temp_data_len,
                                                   batch=batch_id, loss=cur_loss, eid=helper.params['environment_name'],
-                                                  name=str(agent_name_key), win='train_batch_loss', is_poisoned=False)
+                                                  name=str(agent_name_key), is_poisoned=False)
 
                         if helper.params["batch_track_distance"]:
                             # we can calculate distance to this model now
